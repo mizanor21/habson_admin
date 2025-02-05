@@ -138,6 +138,15 @@ const HeroSection = ({ data, id }) => {
                 className="rounded-lg px-5 py-2 border border-b-4 border-[#125b5c] w-full"
               />
               {renderError(errors.image)}
+              <div className="flex justify-end">
+                {data?.image && (
+                  <img
+                    src={data.image}
+                    alt="Hero"
+                    className="mt-2 rounded-lg max-h-24"
+                  />
+                )}
+              </div>
             </div>
           </div>
           <div className="w-full flex justify-end items-center mt-4">

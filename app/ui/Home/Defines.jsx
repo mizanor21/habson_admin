@@ -18,7 +18,6 @@ const DefinesSection = ({ data, id }) => {
       heading: data?.heading || "",
       title: data?.title || "",
       shortDescription: data?.shortDescription || "",
-      image: data?.image || "",
     },
   });
 
@@ -28,7 +27,6 @@ const DefinesSection = ({ data, id }) => {
       heading: data?.heading || "",
       title: data?.title || "",
       shortDescription: data?.shortDescription || "",
-      image: data?.image || "",
     });
   }, [data, reset]);
 
@@ -39,7 +37,6 @@ const DefinesSection = ({ data, id }) => {
         "defineUsSection.heading": formData.heading,
         "defineUsSection.title": formData.title,
         "defineUsSection.shortDescription": formData.shortDescription,
-        "defineUsSection.image": formData.image,
       };
 
       const response = await axios.patch(
@@ -118,20 +115,6 @@ const DefinesSection = ({ data, id }) => {
                 className="rounded-lg px-5 py-2 border border-b-4 border-[#125b5c] w-full min-h-[100px]"
               />
               {renderError(errors.shortDescription)}
-            </div>
-
-            <div className="w-full">
-              <label>
-                Arrow Image <span className="text-red-600">*</span>
-              </label>
-              <input
-                {...register("image")}
-                type="url"
-                placeholder="Arrow Image"
-                aria-invalid={errors.image ? "true" : "false"}
-                className="rounded-lg px-5 py-2 border border-b-4 border-[#125b5c] w-full"
-              />
-              {renderError(errors.image)}
             </div>
           </div>
 
