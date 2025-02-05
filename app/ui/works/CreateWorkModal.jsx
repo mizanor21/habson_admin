@@ -1,10 +1,10 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
-const CreateWorkModal = ({ modalId }) => {
+const CreateWorkModal = ({ modalId, addWork }) => {
   const {
     register,
     control,
@@ -38,6 +38,7 @@ const CreateWorkModal = ({ modalId }) => {
 
       const result = await response.json();
       if (response.ok) {
+        addWork(result);
         toast.success("Work item created successfully");
         reset();
         document.getElementById(modalId).close();
@@ -53,182 +54,162 @@ const CreateWorkModal = ({ modalId }) => {
 
   return (
     <div>
-      <dialog id="createWorkModal" className="modal ">
+      <dialog id={modalId} className="modal">
         <div className="modal-box max-w-[1000px]">
           <form method="dialog">
-            {/* if there is a button in form, it will close the modal */}
             <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
               ✕
             </button>
           </form>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div>
-              <label htmlFor="title">
-                Title <span className="text-red-600">*</span>
+            <h3 className="font-bold text-lg">Create Work Item</h3>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Title</span>
               </label>
               <input
+                type="text"
                 {...register("title", { required: "Title is required" })}
-                placeholder="Title"
-                aria-invalid={errors.title ? "true" : "false"}
-                className="rounded-lg px-5 py-2 border border-[#125b5c] w-full"
+                className="input input-bordered"
               />
               {errors.title && (
-                <small className="text-red-600">{errors.title.message}</small>
+                <span className="text-red-500">{errors.title.message}</span>
               )}
             </div>
-
-            <div>
-              <label htmlFor="detailsTitle">
-                Details Title <span className="text-red-600">*</span>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Details Title</span>
               </label>
               <input
+                type="text"
                 {...register("detailsTitle", {
-                  required: "Details Title is required",
+                  required: "Details title is required",
                 })}
-                placeholder="Details Title"
-                aria-invalid={errors.detailsTitle ? "true" : "false"}
-                className="rounded-lg px-5 py-2 border border-[#125b5c] w-full"
+                className="input input-bordered"
               />
               {errors.detailsTitle && (
-                <small className="text-red-600">
+                <span className="text-red-500">
                   {errors.detailsTitle.message}
-                </small>
+                </span>
               )}
             </div>
-
-            <div>
-              <label htmlFor="serviceDetails">
-                Service Details <span className="text-red-600">*</span>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Category</span>
+              </label>
+              <input
+                type="text"
+                {...register("category", { required: "Category is required" })}
+                className="input input-bordered"
+              />
+              {errors.category && (
+                <span className="text-red-500">{errors.category.message}</span>
+              )}
+            </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Industry</span>
+              </label>
+              <input
+                type="text"
+                {...register("industry", { required: "Industry is required" })}
+                className="input input-bordered"
+              />
+              {errors.industry && (
+                <span className="text-red-500">{errors.industry.message}</span>
+              )}
+            </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Image URL</span>
+              </label>
+              <input
+                type="url"
+                {...register("img", { required: "Image URL is required" })}
+                className="input input-bordered"
+              />
+              {errors.img && (
+                <span className="text-red-500">{errors.img.message}</span>
+              )}
+            </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Video Iframe URL</span>
+              </label>
+              <input
+                type="url"
+                {...register("videoIframeURL", {
+                  required: "Video Iframe URL is required",
+                })}
+                className="input input-bordered"
+              />
+              {errors.videoIframeURL && (
+                <span className="text-red-500">
+                  {errors.videoIframeURL.message}
+                </span>
+              )}
+            </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Service Details</span>
               </label>
               <textarea
                 {...register("serviceDetails", {
-                  required: "Service Details are required",
+                  required: "Service details are required",
                 })}
-                placeholder="Service Details"
-                aria-invalid={errors.serviceDetails ? "true" : "false"}
-                className="rounded-lg px-5 py-2 border border-[#125b5c] w-full min-h-[100px]"
-              />
+                className="textarea textarea-bordered"
+                rows={4}
+              ></textarea>
               {errors.serviceDetails && (
-                <small className="text-red-600">
+                <span className="text-red-500">
                   {errors.serviceDetails.message}
-                </small>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="industry">
-                Industry <span className="text-red-600">*</span>
-              </label>
-              <input
-                {...register("industry")}
-                placeholder="Industry"
-                className="rounded-lg px-5 py-2 border border-[#125b5c] w-full"
-              />
-              {errors.industry && (
-                <small className="text-red-600">
-                  {errors.industry.message}
-                </small>
+                </span>
               )}
             </div>
             <div>
-              <label htmlFor="category">
-                Category <span className="text-red-600">*</span>
-              </label>
-              <input
-                {...register("category")}
-                placeholder="Category"
-                className="rounded-lg px-5 py-2 border border-[#125b5c] w-full"
-              />
-              {errors.industry && (
-                <small className="text-red-600">
-                  {errors.category.message}
-                </small>
-              )}
-            </div>
-
-            <div>
-              <label>
-                Services <span className="text-red-600">*</span>
+              <label className="label">
+                <span className="label-text">Services</span>
               </label>
               {servicesFields.map((field, index) => (
                 <div key={field.id} className="flex space-x-2 mb-2">
                   <input
-                    {...register(`services[${index}].serviceName`, {
-                      required: "Service Name is required",
+                    {...register(`services.${index}.serviceName`, {
+                      required: "Service name is required",
                     })}
                     placeholder="Service Name"
-                    className="rounded-lg px-5 py-2 border border-[#125b5c] w-full"
+                    className="input input-bordered flex-grow"
                   />
                   <input
-                    {...register(`services[${index}].description`, {
-                      required: "Description is required",
+                    {...register(`services.${index}.description`, {
+                      required: "Service description is required",
                     })}
                     placeholder="Service Description"
-                    className="rounded-lg px-5 py-2 border border-[#125b5c] w-full"
+                    className="input input-bordered flex-grow"
                   />
                   <button
                     type="button"
                     onClick={() => remove(index)}
-                    className="rounded-lg px-5 py-2 border border-red-500 hover:bg-red-500 hover:text-white w-full"
+                    className="btn btn-error"
                   >
                     Remove
                   </button>
                 </div>
               ))}
-              <Button
+              <button
                 type="button"
                 onClick={() => append({ serviceName: "", description: "" })}
-                className="mt-2 ms-2 px-10 text-black border-2 border-[#125b5c] hover:bg-[#147274] bg-white hover:text-white"
+                className="btn btn-secondary mt-2"
               >
                 Add Service
-              </Button>
-              {errors.services && (
-                <small className="text-red-600">
-                  {errors.services.message}
-                </small>
-              )}
+              </button>
             </div>
-
-            <div>
-              <label htmlFor="img">
-                Thumbnail Image URL <span className="text-red-600">*</span>
-              </label>
-              <input
-                {...register("img", { required: "Image URL is required" })}
-                placeholder="Image URL"
-                aria-invalid={errors.img ? "true" : "false"}
-                className="rounded-lg px-5 py-2 border border-[#125b5c] w-full"
-              />
-              {errors.img && (
-                <small className="text-red-600">{errors.img.message}</small>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="videoIframeURL">
-                YouTube Iframe URL <span className="text-red-600">*</span>
-              </label>
-              <input
-                {...register("videoIframeURL", {
-                  required: "VideoIframe URL is required",
-                })}
-                placeholder="VideoIframe URL"
-                aria-invalid={errors.videoIframeURL ? "true" : "false"}
-                className="rounded-lg px-5 py-2 border border-[#125b5c] w-full"
-              />
-              {errors.videoIframeURL && (
-                <small className="text-red-600">
-                  {errors.videoIframeURL.message}
-                </small>
-              )}
-            </div>
-
             <div className="w-full flex justify-end items-center">
               <Button
                 type="submit"
                 className="px-10 bg-[#147274] hover:bg-[#145e60]"
+                disabled={loading}
               >
-                Create
+                {loading ? "Creating..." : "Create"}
               </Button>
             </div>
           </form>

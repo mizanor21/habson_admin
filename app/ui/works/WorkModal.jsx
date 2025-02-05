@@ -1,10 +1,10 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
-const WorkModal = ({ workId, modalId }) => {
+const WorkModal = ({ workId, modalId, updateWork }) => {
   const {
     register,
     control,
@@ -24,7 +24,7 @@ const WorkModal = ({ workId, modalId }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!workId) return; // Exit early if no workId is provided
+    if (!workId) return;
 
     const fetchWorkData = async () => {
       setLoading(true);
@@ -41,10 +41,8 @@ const WorkModal = ({ workId, modalId }) => {
 
         const { work } = await response.json();
 
-        // Populate form fields with fetched data
         Object.keys(work).forEach((key) => setValue(key, work[key]));
 
-        // Update services if they exist
         if (Array.isArray(work.services)) {
           replace(
             work.services.map(({ serviceName, description }) => ({
@@ -64,9 +62,8 @@ const WorkModal = ({ workId, modalId }) => {
   }, [workId, setValue, replace]);
 
   const onSubmit = async (data) => {
-    if (!workId) return; // Ensure workId is provided
+    if (!workId) return;
 
-    // Validate essential fields before sending the request
     const services = data.services.filter(
       (service) => service.serviceName && service.description
     );
@@ -83,12 +80,12 @@ const WorkModal = ({ workId, modalId }) => {
           body: JSON.stringify({
             title: data.title,
             detailsTitle: data.detailsTitle,
-            thumbnail: data.thumbnail,
             category: data.category,
             services,
             serviceDetails: data.serviceDetails,
             industry: data.industry,
             img: data.img,
+            videoIframeURL: data.videoIframeURL,
           }),
         }
       );
@@ -103,9 +100,9 @@ const WorkModal = ({ workId, modalId }) => {
       }
 
       const result = await response.json();
+      updateWork(result);
       toast.success("Work updated successfully.");
 
-      // Only close modal if it exists
       const modal = document.getElementById(modalId);
       if (modal) modal.close();
     } catch (error) {
@@ -117,164 +114,162 @@ const WorkModal = ({ workId, modalId }) => {
 
   return (
     <div>
-      <dialog id="workModal" className="modal ">
+      <dialog id={modalId} className="modal">
         <div className="modal-box max-w-[1000px]">
           <form method="dialog">
-            {/* if there is a button in form, it will close the modal */}
             <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
               ✕
             </button>
           </form>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {/* Title Input */}
-            <div>
-              <label htmlFor="title">
-                Title <span className="text-red-600">*</span>
+            <h3 className="font-bold text-lg">Edit Work Item</h3>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Title</span>
               </label>
               <input
+                type="text"
                 {...register("title", { required: "Title is required" })}
-                placeholder="Title"
-                aria-invalid={errors.title ? "true" : "false"}
-                className="rounded-lg px-5 py-2 border border-[#125b5c] w-full"
+                className="input input-bordered"
               />
               {errors.title && (
-                <small className="text-red-600">{errors.title.message}</small>
+                <span className="text-red-500">{errors.title.message}</span>
               )}
             </div>
-
-            {/* Details Title Input */}
-            <div>
-              <label htmlFor="detailsTitle">
-                Details Title <span className="text-red-600">*</span>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Details Title</span>
               </label>
               <input
+                type="text"
                 {...register("detailsTitle", {
-                  required: "Details Title is required",
+                  required: "Details title is required",
                 })}
-                placeholder="Details Title"
-                aria-invalid={errors.detailsTitle ? "true" : "false"}
-                className="rounded-lg px-5 py-2 border border-[#125b5c] w-full"
+                className="input input-bordered"
               />
               {errors.detailsTitle && (
-                <small className="text-red-600">
+                <span className="text-red-500">
                   {errors.detailsTitle.message}
-                </small>
+                </span>
               )}
             </div>
-
-            {/* Service Details Textarea */}
-            <div>
-              <label htmlFor="serviceDetails">
-                Service Details <span className="text-red-600">*</span>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Category</span>
+              </label>
+              <input
+                type="text"
+                {...register("category", { required: "Category is required" })}
+                className="input input-bordered"
+              />
+              {errors.category && (
+                <span className="text-red-500">{errors.category.message}</span>
+              )}
+            </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Industry</span>
+              </label>
+              <input
+                type="text"
+                {...register("industry", { required: "Industry is required" })}
+                className="input input-bordered"
+              />
+              {errors.industry && (
+                <span className="text-red-500">{errors.industry.message}</span>
+              )}
+            </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Image URL</span>
+              </label>
+              <input
+                type="url"
+                {...register("img", { required: "Image URL is required" })}
+                className="input input-bordered"
+              />
+              {errors.img && (
+                <span className="text-red-500">{errors.img.message}</span>
+              )}
+            </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Video Iframe URL</span>
+              </label>
+              <input
+                type="url"
+                {...register("videoIframeURL", {
+                  required: "Video Iframe URL is required",
+                })}
+                className="input input-bordered"
+              />
+              {errors.videoIframeURL && (
+                <span className="text-red-500">
+                  {errors.videoIframeURL.message}
+                </span>
+              )}
+            </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Service Details</span>
               </label>
               <textarea
                 {...register("serviceDetails", {
-                  required: "Service Details are required",
+                  required: "Service details are required",
                 })}
-                placeholder="Service Details"
-                aria-invalid={errors.serviceDetails ? "true" : "false"}
-                className="rounded-lg px-5 py-2 border border-[#125b5c] w-full min-h-[100px]"
-              />
+                className="textarea textarea-bordered"
+                rows={4}
+              ></textarea>
               {errors.serviceDetails && (
-                <small className="text-red-600">
+                <span className="text-red-500">
                   {errors.serviceDetails.message}
-                </small>
+                </span>
               )}
             </div>
-
-            {/* Services Section */}
             <div>
-              <label>
-                Services <span className="text-red-600">*</span>
+              <label className="label">
+                <span className="label-text">Services</span>
               </label>
-              {servicesFields?.map((field, index) => (
-                <div key={field.id} className="space-y-2">
+              {servicesFields.map((field, index) => (
+                <div key={field.id} className="flex space-x-2 mb-2">
                   <input
                     {...register(`services.${index}.serviceName`, {
                       required: "Service name is required",
                     })}
-                    placeholder={`Service Name ${index + 1}`}
-                    aria-invalid={
-                      errors.services?.[index]?.serviceName ? "true" : "false"
-                    }
-                    className="rounded-lg px-5 py-2 border border-[#125b5c] w-full"
+                    placeholder="Service Name"
+                    className="input input-bordered flex-grow"
                   />
                   <input
                     {...register(`services.${index}.description`, {
                       required: "Service description is required",
                     })}
-                    placeholder={`Service Description ${index + 1}`}
-                    aria-invalid={
-                      errors.services?.[index]?.description ? "true" : "false"
-                    }
-                    className="rounded-lg px-5 py-2 border border-[#125b5c] w-full"
+                    placeholder="Service Description"
+                    className="input input-bordered flex-grow"
                   />
                   <button
                     type="button"
-                    className="my-2 rounded px-2 py-1 text-red-600 border-2 border-[#125b5c]"
                     onClick={() => remove(index)}
+                    className="btn btn-error"
                   >
-                    X
+                    Remove
                   </button>
-                  {errors.services?.[index] && (
-                    <small className="text-red-600">
-                      {errors.services[index]?.serviceName?.message ||
-                        errors.services[index]?.description?.message}
-                    </small>
-                  )}
                 </div>
               ))}
-              <Button
+              <button
                 type="button"
                 onClick={() => append({ serviceName: "", description: "" })}
-                className="mt-2 ms-2 px-10 text-black border-2 border-[#125b5c] hover:bg-[#147274] bg-white hover:text-white"
+                className="btn btn-secondary mt-2"
               >
                 Add Service
-              </Button>
+              </button>
             </div>
-
-            {/* Thumbnail Image URL */}
-            <div>
-              <label htmlFor="img">
-                Thumbnail Image URL <span className="text-red-600">*</span>
-              </label>
-              <input
-                {...register("img", { required: "Image URL is required" })}
-                placeholder="Image URL"
-                aria-invalid={errors.img ? "true" : "false"}
-                className="rounded-lg px-5 py-2 border border-[#125b5c] w-full"
-              />
-              {errors.img && (
-                <small className="text-red-600">{errors.img.message}</small>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="videoIframeURL">
-                YouTube Iframe URL <span className="text-red-600">*</span>
-              </label>
-              <input
-                {...register("videoIframeURL", {
-                  required: "VideoIframe URL is required",
-                })}
-                placeholder="VideoIframe URL"
-                aria-invalid={errors.videoIframeURL ? "true" : "false"}
-                className="rounded-lg px-5 py-2 border border-[#125b5c] w-full"
-              />
-              {errors.videoIframeURL && (
-                <small className="text-red-600">
-                  {errors.videoIframeURL.message}
-                </small>
-              )}
-            </div>
-
-            {/* Submit Button */}
             <div className="w-full flex justify-end items-center">
               <Button
                 type="submit"
                 className="px-10 bg-[#147274] hover:bg-[#145e60]"
+                disabled={loading}
               >
-                Save
+                {loading ? "Saving..." : "Save"}
               </Button>
             </div>
           </form>

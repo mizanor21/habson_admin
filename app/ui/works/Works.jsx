@@ -1,18 +1,26 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { LuClipboardEdit } from "react-icons/lu";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import WorkModal from "./WorkModal";
 import { Button } from "@/components/ui/button";
 import CreateWorkModal from "./CreateWorkModal";
 
-const Works = ({ works }) => {
-  const router = useRouter();
+const Works = () => {
+  const [works, setWorks] = useState([]);
   const [workId, setWorkId] = useState("");
+
+  useEffect(() => {
+    fetchWorks();
+  }, []);
+
+  const fetchWorks = async () => {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/works`);
+    const data = await res.json();
+    setWorks(data);
+  };
 
   const removeWork = async (id) => {
     const confirm = window.confirm(
@@ -27,11 +35,22 @@ const Works = ({ works }) => {
         }
       );
       if (res.ok) {
-        router.refresh();
+        setWorks(works.filter((work) => work._id !== id));
         alert("Successfully work item deleted!");
       }
     }
   };
+
+  const addWork = (newWork) => {
+    setWorks([...works, newWork]);
+  };
+
+  const updateWork = (updatedWork) => {
+    setWorks(
+      works.map((work) => (work._id === updatedWork._id ? updatedWork : work))
+    );
+  };
+
   return (
     <div>
       <div className="mb-4 flex justify-end">
@@ -44,10 +63,10 @@ const Works = ({ works }) => {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-5 gap-y-8 md:gap-y-10">
         {works.map((item) => (
-          <div key={item.id} className="group">
+          <div key={item._id} className="group">
             <div>
               <Image
-                src={item?.img}
+                src={item?.img || "/placeholder.svg"}
                 alt=""
                 width={500}
                 height={100}
@@ -70,7 +89,6 @@ const Works = ({ works }) => {
                     <RiDeleteBin6Line />
                   </button>
                 </div>
-                <WorkModal workId={workId} modalId={"workModal"} />
               </div>
               <p className="text-[16px] md:text-[20px] mt-3">
                 {item?.detailsTitle}
@@ -78,8 +96,12 @@ const Works = ({ works }) => {
             </div>
           </div>
         ))}
-
-        <CreateWorkModal modalId={"createWorkModal"} />
+        <WorkModal
+          workId={workId}
+          modalId="workModal"
+          updateWork={updateWork}
+        />
+        <CreateWorkModal modalId="createWorkModal" addWork={addWork} />
       </div>
     </div>
   );
