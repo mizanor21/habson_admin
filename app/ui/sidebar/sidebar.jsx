@@ -13,7 +13,7 @@ import {
   MdWork,
   MdWorkspaces,
 } from "react-icons/md"; // Import icons
-import logo from "@/public/assets/logo/logoWhite.png";
+import logo from "@/public/assets/logo/logo.png";
 
 const Sidebar = () => {
   const pathname = usePathname();
@@ -120,9 +120,9 @@ const Sidebar = () => {
   return (
     <div className="h-screen w-80 bg-gradient-to-b from-gray-900 to-black text-gray-200 p-4 flex flex-col">
       {/* Logo and Title */}
-      <div className="flex flex-col items-center mb-8 border-b border-gray-700 pb-4">
-        <Image src={logo} alt="Brand Logo" width={50} height={50} />
-        <h2 className="text-xl font-semibold mt-2">Admin Panel</h2>
+      <div className="flex flex-col items-center mb-8 border-b border-gray-700 py-10">
+        <Image src={logo} alt="Brand Logo" width={200} height={200} />
+        {/* <h2 className="text-xl font-semibold mt-2">Admin Panel</h2> */}
       </div>
 
       {/* Menu Items */}
