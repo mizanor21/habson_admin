@@ -21,6 +21,7 @@ export async function POST(req) {
       serviceDetails,
       industry,
       img,
+      videoIframeURL,
     } = await req.json();
 
     await connectToDB();
@@ -34,6 +35,7 @@ export async function POST(req) {
       serviceDetails,
       industry,
       img,
+      videoIframeURL,
     });
 
     return NextResponse.json({ message: "works created" }, { status: 201 });

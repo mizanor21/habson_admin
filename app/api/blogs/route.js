@@ -1,4 +1,4 @@
-import { Blogs } from "@/app/lib/Blogs/models";
+import Blogs from "@/app/lib/Blogs/models";
 import { connectToDB } from "@/app/lib/connectToDB";
 import { NextResponse } from "next/server";
 

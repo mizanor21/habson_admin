@@ -97,11 +97,14 @@ const CreateWorkModal = ({ modalId, addWork }) => {
               <label className="label">
                 <span className="label-text">Category</span>
               </label>
-              <input
-                type="text"
+              <select
                 {...register("category", { required: "Category is required" })}
-                className="input input-bordered"
-              />
+                className="select select-bordered"
+              >
+                <option value="">Select a category</option>
+                <option value="Casestudy">Casestudy</option>
+                <option value="Daily Creativity">Daily Creativity</option>
+              </select>
               {errors.category && (
                 <span className="text-red-500">{errors.category.message}</span>
               )}
