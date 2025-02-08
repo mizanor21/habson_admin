@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Image from "next/image";
 
 const ColorPalate = () => {
   const [cards, setCards] = useState([]);
@@ -130,13 +131,13 @@ const ColorPalate = () => {
         {cards.map((card) => (
           <div
             key={card._id}
-            className=" overflow-hidden border hover:-translate-y-5 duration-500 mt-5 bg-white rounded-lg shadow-md"
+            className=" overflow-hidden border hover:-translate-y-5 duration-500 mt-5 bg-white rounded-lg shadow-md "
           >
-            <div>
-              <img
-                width={450}
-                height={400}
-                className="w-full  object-cover"
+            <div className="h-[400px] object-cover">
+              <Image
+                width={400}
+                height={450}
+                className="w-full"
                 src={card?.imageUrl}
                 alt={card.title}
               />

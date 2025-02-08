@@ -67,10 +67,6 @@ const Sidebar = () => {
     },
     {
       title: "Jobs",
-      path: "/dashboard/jobs",
-    },
-    {
-      title: "Jobs",
       icon: <MdWork />,
       subItems: [
         { title: "Job Hero", path: "/dashboard/job-hero" },
