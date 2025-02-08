@@ -22,7 +22,7 @@ const JobHeroForm = () => {
           <input
             className="rounded-lg px-5 py-2 border border-b-4 border-[#125b5c] w-full min-h-[100px]"
             id="summary"
-            {...register("summary", { required: "Job Summary is required" })}
+            {...register("summary", { required: "Hero Summary is required" })}
           />
           {errors.summary && <p>{errors.summary.message}</p>}
         </div>
@@ -32,7 +32,7 @@ const JobHeroForm = () => {
             type="text"
             className="rounded-lg px-5 py-2 border border-b-4 border-[#125b5c] w-full min-h-[100px]"
             id="title"
-            {...register("title", { required: "Job title is required" })}
+            {...register("title", { required: "Title is required" })}
           />
           {errors.title && <p>{errors.title.message}</p>}
         </div>
@@ -43,7 +43,7 @@ const JobHeroForm = () => {
             className="rounded-lg px-5 py-2 border border-b-4 border-[#125b5c] w-full min-h-[100px]"
             id="description"
             {...register("description", {
-              required: "Job description is required",
+              required: "Description is required",
             })}
           />
           {errors.description && <p>{errors.description.message}</p>}
