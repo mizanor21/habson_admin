@@ -2,16 +2,31 @@ import { connectToDB } from "@/app/lib/connectToDB";
 import { JobHero } from "@/app/lib/JobHero/model";
 import { NextResponse } from "next/server";
 
-export async function PATCH(req, { params }) {
-  const { id } = params;
+export async function GET() {
+  await connectToDB();
+  try {
+    const heroes = await JobHero.find({});
+    return NextResponse.json(heroes, { status: 200 });
+  } catch (error) {
+    console.error("Failed to fetch hero data:", error);
+    return NextResponse.json(
+      { message: "Failed to fetch hero data" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(req) {
   const updateData = await req.json();
+  const url = new URL(req.url);
+  const id = url.pathname.split("/").pop();
 
   await connectToDB();
 
   try {
     const updatedHero = await JobHero.findByIdAndUpdate(id, updateData, {
-      new: true, // Returns the updated document
-      runValidators: true, // Ensures model validation
+      new: true,
+      runValidators: true,
     });
 
     if (!updatedHero) {
@@ -32,17 +47,4 @@ export async function PATCH(req, { params }) {
       { status: 500 }
     );
   }
-}
-
-export async function GET(req, { params }) {
-  const { id } = params;
-  await connectToDB();
-  const hero = await JobHero.findOne({ _id: id });
-  if (!hero) {
-    return NextResponse.json(
-      { message: "hero data not found" },
-      { status: 404 }
-    );
-  }
-  return NextResponse.json(hero, { status: 200 });
 }
