@@ -131,13 +131,13 @@ const ColorPalate = () => {
         {cards.map((card) => (
           <div
             key={card._id}
-            className=" overflow-hidden border hover:-translate-y-5 duration-500 mt-5 bg-white rounded-lg shadow-md "
+            className="hover:-translate-y-5 duration-500 mt-5 bg-white rounded-lg shadow-md "
           >
-            <div className="h-[400px] object-cover">
+            <div className="h-[400px]">
               <Image
                 width={400}
                 height={450}
-                className="w-full"
+                className="w-full h-[400px] object-cover rounded-t-lg"
                 src={card?.imageUrl}
                 alt={card.title}
               />
