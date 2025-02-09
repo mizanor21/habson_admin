@@ -25,9 +25,12 @@ const Sidebar = () => {
       icon: <MdDashboard />,
     },
     {
-      title: "Home",
-      path: "/dashboard/home",
+      title: "Homes",
       icon: <MdHome />,
+      subItems: [
+        { title: "Homes", path: "/dashboard/home" },
+        { title: "Mouse Movement", path: "/dashboard/mouse-movement" },
+      ],
     },
     {
       title: "Work",
