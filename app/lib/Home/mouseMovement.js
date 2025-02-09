@@ -5,6 +5,7 @@ const mouseMovementSchema = new mongoose.Schema({
   path: { type: String },
   title: { type: String, required: true },
   content: { type: String, required: true },
+  color: {},
 });
 
 export const MouseMovement =

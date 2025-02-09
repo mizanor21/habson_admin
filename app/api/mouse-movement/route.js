@@ -9,22 +9,33 @@ export async function GET() {
   response.headers.set("Access-Control-Allow-Origin", "*");
   return response;
 }
-
 export async function POST(req) {
   try {
+    // Parse incoming data
     const MouseMovementData = await req.json();
 
-    // Connect to the database
+    // Validate required fields
+    if (!MouseMovementData.title || !MouseMovementData.content) {
+      return NextResponse.json(
+        { message: "Title and Content are required" },
+        { status: 400 }
+      );
+    }
+
+    // Connect to database
     await connectToDB();
-    await MouseMovement.create(MouseMovementData);
+
+    // Create a new entry
+    const newEntry = await MouseMovement.create(MouseMovementData);
+
     return NextResponse.json(
-      { message: "MouseMovement data created" },
+      { message: "MouseMovement data created", data: newEntry },
       { status: 201 }
     );
   } catch (error) {
     console.error("Error creating MouseMovement data:", error);
     return NextResponse.json(
-      { message: "Failed to create MouseMovement data" },
+      { message: "Failed to create MouseMovement data", error: error.message },
       { status: 500 }
     );
   }
