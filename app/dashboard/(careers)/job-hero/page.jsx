@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast, ToastContainer } from "react-toastify";
 
 const JobHeroForm = () => {
   const {
@@ -47,10 +48,11 @@ const JobHeroForm = () => {
     })
       .then((response) => response.json())
       .then((result) => {
-        console.log("Success:", result);
+        toast.success("Data successfully updated!");
+        // console.log("Success:", result);
       })
       .catch((error) => {
-        console.error("Error updating job hero data:", error);
+        toast.error("Failed to update data");
       });
   };
 
@@ -61,8 +63,9 @@ const JobHeroForm = () => {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-6 bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto"
+      className="space-y-6 bg-white p-6 rounded-lg shadow-lg "
     >
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <h2 className="text-2xl font-semibold text-gray-800 text-center">
         Update Job Hero
       </h2>
@@ -153,7 +156,7 @@ const JobHeroForm = () => {
       </div>
 
       {/* Submit Button */}
-      <div className="flex justify-center">
+      <div className="flex justify-end">
         <button
           className="px-6 py-3 text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg shadow-md hover:shadow-xl hover:scale-105 transition-all"
           type="submit"
