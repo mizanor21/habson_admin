@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
 const mouseMovementSchema = new mongoose.Schema({
-  id: { type: String, required: true },
+  id: { type: String },
   path: { type: String },
   title: { type: String, required: true },
   content: { type: String, required: true },
