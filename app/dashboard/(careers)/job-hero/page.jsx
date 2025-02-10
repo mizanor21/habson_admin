@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const JobHeroForm = () => {
   const {
@@ -10,10 +11,12 @@ const JobHeroForm = () => {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm();
 
   const [loading, setLoading] = useState(true);
   const [heroId, setHeroId] = useState() || null > null;
+  const [imagePreview, setImagePreview] = useState() || null > null;
 
   useEffect(() => {
     // Fetch default data from the API
@@ -24,6 +27,7 @@ const JobHeroForm = () => {
           const heroData = data[0];
           reset(heroData);
           setHeroId(heroData._id);
+          setImagePreview(heroData.image);
         }
         setLoading(false);
       })
@@ -33,12 +37,42 @@ const JobHeroForm = () => {
       });
   }, [reset]);
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     if (!heroId) {
       console.error("No hero ID available for update");
       return;
     }
 
+    setLoading(true);
+
+    // Handle image upload
+    if (data.image && data.image[0]) {
+      const formData = new FormData();
+      formData.append("file", data.image[0]);
+      formData.append("upload_preset", "habson"); // Replace with your Cloudinary upload preset
+
+      try {
+        const response = await fetch(
+          "https://api.cloudinary.com/v1_1/dov6k7xdk/image/upload",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+        const imageData = await response.json();
+        data.image = imageData.secure_url;
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        toast.error("Failed to upload image");
+        setLoading(false);
+        return;
+      }
+    } else {
+      // If no new image is uploaded, use the existing image URL
+      data.image = imagePreview;
+    }
+
+    // Update hero data
     fetch(`/api/job-hero/${heroId}`, {
       method: "PATCH",
       headers: {
@@ -49,10 +83,13 @@ const JobHeroForm = () => {
       .then((response) => response.json())
       .then((result) => {
         toast.success("Data successfully updated!");
-        // console.log("Success:", result);
+        setImagePreview(data.image);
       })
       .catch((error) => {
         toast.error("Failed to update data");
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -63,7 +100,7 @@ const JobHeroForm = () => {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-6 bg-white p-6 rounded-lg shadow-lg "
+      className="space-y-6 bg-white p-6 rounded-lg shadow-lg"
     >
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <h2 className="text-2xl font-semibold text-gray-800 text-center">
@@ -141,17 +178,26 @@ const JobHeroForm = () => {
           htmlFor="image"
           className="text-sm font-medium text-gray-700 mb-1"
         >
-          Background Image URL
+          Background Image
         </label>
         <input
-          type="url"
+          type="file"
+          accept="image/*"
           className="p-3 rounded-lg border focus:ring-2 focus:ring-indigo-300 outline-none transition-all"
           id="image"
-          placeholder="Paste the image URL..."
-          {...register("image", { required: "Job image URL is required" })}
+          {...register("image")}
+          onChange={(e) => {
+            if (e.target.files && e.target.files[0]) {
+              setImagePreview(URL.createObjectURL(e.target.files[0]));
+            }
+          }}
         />
-        {errors.image && (
-          <p className="text-sm text-red-500 mt-1">{errors.image.message}</p>
+        {imagePreview && (
+          <img
+            src={imagePreview || "/placeholder.svg"}
+            alt="Preview"
+            className="mt-2 max-w-xs"
+          />
         )}
       </div>
 
@@ -160,8 +206,9 @@ const JobHeroForm = () => {
         <button
           className="px-6 py-3 text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg shadow-md hover:shadow-xl hover:scale-105 transition-all"
           type="submit"
+          disabled={loading}
         >
-          Update Job Hero
+          {loading ? "Updating..." : "Update Job Hero"}
         </button>
       </div>
     </form>

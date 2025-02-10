@@ -12,6 +12,8 @@ export async function POST(request) {
       );
     }
 
+    console.log("Image URL:", secure_url); // Log the image URL
+
     const { db } = await connectToDB();
 
     const result = await db.collection("images").insertOne({
@@ -19,6 +21,7 @@ export async function POST(request) {
       secure_url,
       createdAt: new Date(),
     });
+    console.log(result);
 
     return NextResponse.json(
       {
