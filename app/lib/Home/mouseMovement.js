@@ -5,7 +5,7 @@ const mouseMovementSchema = new mongoose.Schema({
   path: { type: String },
   title: { type: String, required: true },
   content: { type: String, required: true },
-  color: {},
+  color: { type: String, match: /^#[0-9A-F]{6}$/i }, // Validates hex color code
 });
 
 export const MouseMovement =
