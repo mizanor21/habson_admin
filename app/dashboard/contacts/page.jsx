@@ -1,8 +1,10 @@
 export const revalidate = 10; // Revalidate every 10 second
+import { Contact } from "@/app/lib/Contact/model";
+import ContactImg from "@/app/ui/ContactImg/ContactImg";
 import React from "react";
 
 const Contacts = async () => {
-  const res = await fetch("https://habson-admin.vercel.app/api/contact-img", {
+  const res = await fetch("http://localhost:3000/api/contact-img", {
     next: { revalidate },
   });
 
@@ -13,8 +15,10 @@ const Contacts = async () => {
   }
 
   const contactImg = await res.json();
-  console.log(contactImg);
-  return <div>contact! {contactImg.length}</div>;
+
+  return <div>
+    <ContactImg data={contactImg} />
+  </div>;
 };
 
 export default Contacts;
