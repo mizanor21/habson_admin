@@ -269,7 +269,7 @@ const WorkModal = ({ workId, modalId, updateWork }) => {
             </div>
             <div className="form-control">
               <label className="cursor-pointer label">
-                <span className="label-text">Trending</span>
+                <span className="label-text">This work is trending?</span>
                 <input
                   type="checkbox"
                   {...register("isTrending")}
