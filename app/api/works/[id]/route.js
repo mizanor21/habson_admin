@@ -27,6 +27,7 @@ export async function PATCH(req, { params }) {
       industry,
       img,
       videoIframeURL,
+      isTrending,
     } = await req.json();
     const { id } = params;
     // Connect to the database
@@ -45,6 +46,7 @@ export async function PATCH(req, { params }) {
         industry,
         img,
         videoIframeURL,
+        isTrending,
       },
       { new: true } // Return the updated document
     );

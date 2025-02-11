@@ -22,6 +22,7 @@ export async function POST(req) {
       industry,
       img,
       videoIframeURL,
+      isTrending,
     } = await req.json();
 
     await connectToDB();
@@ -36,6 +37,7 @@ export async function POST(req) {
       industry,
       img,
       videoIframeURL,
+      isTrending,
     });
 
     return NextResponse.json({ message: "works created" }, { status: 201 });

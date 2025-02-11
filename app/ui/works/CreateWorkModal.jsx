@@ -206,6 +206,19 @@ const CreateWorkModal = ({ modalId, addWork }) => {
                 Add Service
               </button>
             </div>
+
+            <div className="form-control">
+              <label className="label cursor-pointer">
+                <span className="label-text text-lg font-bold">
+                  This work is trending?
+                </span>
+                <input
+                  type="checkbox"
+                  {...register("isTrending")}
+                  className="toggle toggle-primary"
+                />
+              </label>
+            </div>
             <div className="w-full flex justify-end items-center">
               <Button
                 type="submit"

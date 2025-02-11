@@ -86,6 +86,7 @@ const WorkModal = ({ workId, modalId, updateWork }) => {
             industry: data.industry,
             img: data.img,
             videoIframeURL: data.videoIframeURL,
+            isTrending: data.isTrending,
           }),
         }
       );
@@ -157,11 +158,14 @@ const WorkModal = ({ workId, modalId, updateWork }) => {
               <label className="label">
                 <span className="label-text">Category</span>
               </label>
-              <input
-                type="text"
+              <select
                 {...register("category", { required: "Category is required" })}
-                className="input input-bordered"
-              />
+                className="select select-bordered"
+              >
+                <option value="">Select a category</option>
+                <option value="Casestudy">Casestudy</option>
+                <option value="Daily Creativity">Daily Creativity</option>
+              </select>
               {errors.category && (
                 <span className="text-red-500">{errors.category.message}</span>
               )}
@@ -262,6 +266,16 @@ const WorkModal = ({ workId, modalId, updateWork }) => {
               >
                 Add Service
               </button>
+            </div>
+            <div className="form-control">
+              <label className="cursor-pointer label">
+                <span className="label-text">Trending</span>
+                <input
+                  type="checkbox"
+                  {...register("isTrending")}
+                  className="toggle toggle-primary"
+                />
+              </label>
             </div>
             <div className="w-full flex justify-end items-center">
               <Button

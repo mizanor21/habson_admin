@@ -17,7 +17,7 @@ const workSchema = new mongoose.Schema(
     industry: String,
     img: String,
     videoIframeURL: String,
-    isActive: Boolean,
+    isTrending: Boolean,
   },
   { timestamps: true }
 );
