@@ -13,6 +13,7 @@ import {
   MdWork,
   MdWorkspaces,
 } from "react-icons/md"; // Import icons
+import { PiImagesSquareDuotone } from "react-icons/pi";
 import logo from "@/public/assets/logo/logo.png";
 
 const Sidebar = () => {
@@ -64,17 +65,22 @@ const Sidebar = () => {
       ],
     },
     {
-      title: "Color Palate",
-      path: "/dashboard/color-palette",
-      icon: <MdColorLens />,
-    },
-    {
       title: "Jobs",
       icon: <MdWork />,
       subItems: [
         { title: "Job Hero", path: "/dashboard/job-hero" },
         { title: "Jobs", path: "/dashboard/jobs" },
       ],
+    },
+    {
+      title: "Color Palate",
+      path: "/dashboard/color-palette",
+      icon: <MdColorLens />,
+    },
+    {
+      title: "Contact Images",
+      path: "/dashboard/contacts",
+      icon: <PiImagesSquareDuotone />,
     },
     {
       title: "Settings",
