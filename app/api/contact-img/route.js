@@ -39,43 +39,28 @@ export async function POST(req) {
 }
 
 
-// Handle DELETE requests
 export async function DELETE(req) {
   try {
     const url = new URL(req.url);
     const id = url.searchParams.get("id");
     await connectToDB();
-    const deletedContact = await ContactImg.findByIdAndDelete(id);
-
-    if (!deletedContact) {
+    const deletedContactImg = await ContactImg.findByIdAndDelete(id);
+    if (!deletedContactImg) {
       return NextResponse.json(
-        { message: "Contact data not found" },
+        { message: "Blog data not found" },
         { status: 404 }
       );
     }
 
-    const response = NextResponse.json(
-      { message: "Contact data deleted" },
-      { status: 200 }
-    );
-
-    response.headers.set("Access-Control-Allow-Origin", "*");
-    response.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET, POST, DELETE, OPTIONS"
-    );
-    response.headers.set("Access-Control-Allow-Headers", "Content-Type");
-
-    return response;
+    return NextResponse.json({ message: "ContactImg data deleted" }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { message: "Failed to delete Contact data" },
+      { message: "Failed to delete ContactImg data" },
       { status: 500 }
     );
   }
 }
-
 // Handle OPTIONS requests for CORS preflight
 export async function OPTIONS() {
   const headers = new Headers();
