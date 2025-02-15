@@ -2,8 +2,7 @@ import mongoose from "mongoose";
 
 const ContactImgSchema = new mongoose.Schema(
   {
-    img: { type: String },
-    cloudinaryPublicID: { type: String },
+    img: String,
   },
   { timestamps: true }
 );

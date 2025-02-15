@@ -18,34 +18,26 @@ export async function GET() {
   return response;
 }
 
-// Handle POST requests
 export async function POST(req) {
   try {
-    const contactData = await req.json();
-    await connectToDB();
-    await ContactImg.create(contactData);
+    const jobHeroData = await req.json();
 
-    const response = NextResponse.json(
+    // Connect to the database
+    await connectToDB();
+    await ContactImg.create(jobHeroData);
+    return NextResponse.json(
       { message: "Contact data created" },
       { status: 201 }
     );
-
-    response.headers.set("Access-Control-Allow-Origin", "*");
-    response.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET, POST, DELETE, OPTIONS"
-    );
-    response.headers.set("Access-Control-Allow-Headers", "Content-Type");
-
-    return response;
   } catch (error) {
-    console.error("Error creating contact data:", error);
+    console.error("Error creating Contact data:", error);
     return NextResponse.json(
-      { message: "Failed to create contact data" },
+      { message: "Failed to create Contact data" },
       { status: 500 }
     );
   }
 }
+
 
 // Handle DELETE requests
 export async function DELETE(req) {

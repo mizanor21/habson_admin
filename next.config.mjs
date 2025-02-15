@@ -4,8 +4,8 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "i.postimg.cc",
-        pathname: "/**", // Allow all paths on this domain
+        hostname: "**", // Allow all hostnames
+        pathname: "/**", // Allow all paths
       },
     ],
   },
