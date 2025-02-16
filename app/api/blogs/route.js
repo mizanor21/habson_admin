@@ -1,13 +1,53 @@
-import Blogs from "@/app/lib/Blogs/models";
+import { Blogs } from "@/app/lib/Blogs/models";
 import { connectToDB } from "@/app/lib/connectToDB";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req) {
   await connectToDB();
-  const blogs = await Blogs.find();
-  const response = NextResponse.json(blogs);
+  const data = await Blogs.find();
+  const response = NextResponse.json(data);
   response.headers.set("Access-Control-Allow-Origin", "*");
   return response;
+}
+
+export async function POST(req) {
+  try {
+    const {
+      title,
+      detailsTitle,
+      thumbnail,
+      category,
+      services,
+      serviceDetails,
+      industry,
+      img,
+      videoIframeURL,
+      isTrending,
+    } = await req.json();
+
+    await connectToDB();
+
+    await Blogs.create({
+      title,
+      detailsTitle,
+      thumbnail,
+      category,
+      services,
+      serviceDetails,
+      industry,
+      img,
+      videoIframeURL,
+      isTrending,
+    });
+
+    return NextResponse.json({ message: "blogs created" }, { status: 201 });
+  } catch (error) {
+    console.error("Error creating blogs:", error);
+    return NextResponse.json(
+      { message: "Failed to create blogs" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function DELETE(req) {
@@ -18,12 +58,12 @@ export async function DELETE(req) {
     const deletedHero = await Blogs.findByIdAndDelete(id);
     if (!deletedHero) {
       return NextResponse.json(
-        { message: "Blog data not found" },
+        { message: "blog data not found" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ message: "Blog data deleted" }, { status: 200 });
+    return NextResponse.json({ message: "blog data deleted" }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json(

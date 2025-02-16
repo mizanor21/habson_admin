@@ -1,26 +1,24 @@
-import mongoose from "mongoose";
+import mongoose from "mongoose"
 
-const blogSchema = new mongoose.Schema(
+const blogsSchema = new mongoose.Schema(
   {
-    id: Number,
-    category: String,
-    thumbnail: String,
-    title: String,
-    detailsTitle: String,
+    category: { type: String, },
+    thumbnail: { type: String },
+    title: { type: String, },
+    detailsTitle: { type: String, },
     services: [
       {
-        serviceName: String,
-        description: String,
+        serviceName: { type: String, },
+        description: { type: String, },
       },
     ],
-    serviceDetails: String,
-    industry: String,
-    img: String,
-    isActive: Boolean,
+    serviceDetails: { type: String, },
+    industry: { type: String, },
+    img: { type: String },
+    videoIframeURL: { type: String },
+    isTrending: { type: Boolean, default: false },
   },
-  { timestamps: true }
-);
+  { timestamps: true },
+)
 
-const Blogs = mongoose.models.Blogs || mongoose.model("Blogs", blogSchema);
-
-export default Blogs;
+export const Blogs = mongoose.models.Blogs || mongoose.model("Blogs", blogsSchema)
