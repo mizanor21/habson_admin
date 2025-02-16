@@ -1,4 +1,4 @@
-"use client"; // Use this if you're using Next.js app directory
+"use client";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -7,7 +7,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { IoIosAddCircle } from "react-icons/io";
 import { LiaEditSolid } from "react-icons/lia";
 import { RiDeleteBin6Fill } from "react-icons/ri";
-import TeamModal from "./TeamModal"; // Adjust the path based on your project structure
 
 const MeetOurTeam = () => {
   const [teams, setTeams] = useState([]);
@@ -16,6 +15,9 @@ const MeetOurTeam = () => {
   const [editedName, setEditedName] = useState("");
   const [editedTitle, setEditedTitle] = useState("");
   const [editedImage, setEditedImage] = useState("");
+  const [file, setFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const fetchTeams = async () => {
@@ -56,58 +58,81 @@ const MeetOurTeam = () => {
     setEditedName(team.name);
     setEditedTitle(team.title);
     setEditedImage(team.image);
-    setModalOpen(true); // Open modal for editing
+    setImagePreview(team.image);
+    setModalOpen(true);
   };
 
-  const handleUpdate = async () => {
-    try {
-      await axios.patch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/teams/${editingId}`,
-        {
-          name: editedName,
-          title: editedTitle,
-          image: editedImage,
-        }
-      );
-
-      setTeams((prevData) =>
-        prevData.map((team) =>
-          team.id === editingId
-            ? {
-                ...team,
-                name: editedName,
-                title: editedTitle,
-                image: editedImage,
-              }
-            : team
-        )
-      );
-
-      toast.success("Team member data updated successfully.");
-      resetForm(); // Exit edit mode
-    } catch (error) {
-      console.error("Error updating team member data:", error);
-      toast.error("Failed to update team member data.");
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setImagePreview(URL.createObjectURL(selectedFile));
     }
   };
 
-  const handleAddMember = async () => {
+  const uploadImage = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "habson");
+
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/teams`,
+      const response = await fetch(
+        "https://api.cloudinary.com/v1_1/dov6k7xdk/image/upload",
         {
-          name: editedName,
-          title: editedTitle,
-          image: editedImage,
+          method: "POST",
+          body: formData,
         }
       );
-
-      setTeams((prevData) => [...prevData, response.data]);
-      toast.success("Team member added successfully.");
-      resetForm(); // Close the modal
+      const data = await response.json();
+      return data.secure_url;
     } catch (error) {
-      console.error("Error adding team member:", error);
-      toast.error("Failed to add team member.");
+      console.error("Error uploading image:", error);
+      return null;
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setUploading(true);
+
+    try {
+      let imageUrl = editedImage;
+
+      if (file) {
+        imageUrl = await uploadImage(file);
+        if (!imageUrl) return;
+      }
+
+      if (editingId) {
+        await axios.patch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/teams/${editingId}`,
+          { name: editedName, title: editedTitle, image: imageUrl }
+        );
+
+        setTeams((prevData) =>
+          prevData.map((team) =>
+            team.id === editingId
+              ? { ...team, name: editedName, title: editedTitle, image: imageUrl }
+              : team
+          )
+        );
+        toast.success("Team member updated successfully.");
+      } else {
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/teams`,
+          { name: editedName, title: editedTitle, image: imageUrl }
+        );
+
+        setTeams([...teams, response.data]);
+        toast.success("Team member added successfully.");
+      }
+
+      resetForm();
+    } catch (error) {
+      console.error("Error saving team member:", error);
+      toast.error("Failed to save team member.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -116,23 +141,18 @@ const MeetOurTeam = () => {
     setEditedName("");
     setEditedTitle("");
     setEditedImage("");
+    setFile(null);
+    setImagePreview(null);
     setModalOpen(false);
-  };
-
-  const handleSubmit = () => {
-    if (editingId) {
-      handleUpdate();
-    } else {
-      handleAddMember();
-    }
   };
 
   return (
     <div>
+      {/* Add Team Member Button */}
       <div className="flex justify-end mb-4">
         <button
           onClick={() => {
-            resetForm(); // Reset the form for adding a new member
+            resetForm();
             setModalOpen(true);
           }}
           className="text-xl bg-green-500 text-white rounded-full p-2 flex items-center"
@@ -140,6 +160,8 @@ const MeetOurTeam = () => {
           <IoIosAddCircle className="mr-2" /> Add Team Member
         </button>
       </div>
+
+      {/* Team Members Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 py-10 lg:py-16">
         {teams.map((team) => (
           <div key={team.id} className="text-center group">
@@ -172,17 +194,48 @@ const MeetOurTeam = () => {
         ))}
       </div>
 
-      <TeamModal
-        isOpen={modalOpen}
-        onClose={resetForm}
-        onSubmit={handleSubmit}
-        editedName={editedName}
-        setEditedName={setEditedName}
-        editedTitle={editedTitle}
-        setEditedTitle={setEditedTitle}
-        editedImage={editedImage}
-        setEditedImage={setEditedImage}
-      />
+      {/* Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-5 rounded-lg">
+            <h2 className="text-xl font-bold">{editingId ? "Edit" : "Add"} Team Member</h2>
+            <form onSubmit={handleSubmit}>
+              <label className="block mb-2 font-semibold">Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="border-b mb-4 p-2 w-full"
+              />
+              {imagePreview && (
+                <img src={imagePreview} alt="Preview" className="mb-4 rounded-lg w-full max-w-xs" />
+              )}
+              <input
+                type="text"
+                placeholder="Name"
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                className="border-b mb-4 p-2 w-full"
+              />
+              <input
+                type="text"
+                placeholder="Title"
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+                className="border-b mb-4 p-2 w-full"
+              />
+              <div className="flex justify-end">
+                <button onClick={resetForm} className="mr-2 bg-gray-500 text-white p-2 rounded">
+                  Cancel
+                </button>
+                <button type="submit" className="bg-blue-500 text-white p-2 rounded">
+                  {uploading ? "Saving..." : "Save"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <ToastContainer />
     </div>
