@@ -7,8 +7,6 @@ import "react-toastify/dist/ReactToastify.css";
 import { IoIosAddCircle } from "react-icons/io";
 import { LiaEditSolid } from "react-icons/lia";
 import { RiDeleteBin6Fill } from "react-icons/ri";
-import PartnerModal from "./PartnerModal";
-// import Modal from "./components/Modal"; // Adjust the path based on your project structure
 
 const Partnership = () => {
   const [partnersData, setPartnersData] = useState([]);
@@ -17,6 +15,7 @@ const Partnership = () => {
   const [editedDescription, setEditedDescription] = useState("");
   const [editedLogo, setEditedLogo] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [file, setFile] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,16 +29,23 @@ const Partnership = () => {
         toast.error("Failed to load partner data.");
       }
     };
-
     fetchData();
   }, []);
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this partner?"
-    );
-    if (!confirmDelete) return;
+  const handleFileChange = (e) => {
+    const uploadedFile = e.target.files[0];
+    if (uploadedFile) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditedLogo(reader.result);
+      };
+      reader.readAsDataURL(uploadedFile);
+      setFile(uploadedFile);
+    }
+  };
 
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to delete this partner?")) return;
     try {
       await axios.delete(
         `${process.env.NEXT_PUBLIC_API_URL}/api/partnership?id=${id}`
@@ -56,66 +62,47 @@ const Partnership = () => {
     setEditingId(partner._id);
     setEditedName(partner.name);
     setEditedDescription(partner.description);
-    setEditedLogo(partner?.logo);
+    setEditedLogo(partner.logo);
+    setModalOpen(true);
   };
 
-  const handleUpdate = async (id) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      await axios.patch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/partnership/${id}`,
-        {
-          name: editedName,
-          description: editedDescription,
-          logo: editedLogo,
-        }
-      );
-
-      // Immediately update the local state with the new data
-      setPartnersData((prevData) =>
-        prevData.map((partner) =>
-          partner._id === id
-            ? {
-                ...partner,
-                name: editedName,
-                description: editedDescription,
-                logo: editedLogo,
-              }
-            : partner
-        )
-      );
-
-      toast.success("Partner data updated successfully.");
-      setEditingId(null); // Exit edit mode
-    } catch (error) {
-      console.error("Error updating partner data:", error);
-      toast.error("Failed to update partner data.");
-    }
-  };
-
-  // Handle adding a new partner
-  const handleAddPartner = async () => {
-    try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/partnership`,
-        {
-          name: editedName,
-          description: editedDescription,
-          logo: editedLogo,
-        }
-      );
-
-      // Immediately add the new partner to local state
-      setPartnersData((prevData) => [...prevData, response.data]);
-      toast.success("Partner added successfully.");
-
-      // Close the modal and clear input fields after adding
+      const payload = {
+        name: editedName,
+        description: editedDescription,
+        logo: editedLogo,
+      };
+      let response;
+      if (editingId) {
+        response = await axios.patch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/partnership/${editingId}`,
+          payload
+        );
+        setPartnersData((prevData) =>
+          prevData.map((partner) =>
+            partner._id === editingId ? response.data : partner
+          )
+        );
+        toast.success("Partner updated successfully.");
+      } else {
+        response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/partnership`,
+          payload
+        );
+        setPartnersData([...partnersData, response.data]);
+        toast.success("Partner added successfully.");
+      }
       setModalOpen(false);
+      setEditingId(null);
       setEditedName("");
       setEditedDescription("");
       setEditedLogo("");
+      setFile(null);
     } catch (error) {
-      console.error("Error adding partner:", error);
-      toast.error("Failed to add partner.");
+      console.error("Error saving partner data:", error);
+      toast.error("Failed to save partner data.");
     }
   };
 
@@ -130,75 +117,25 @@ const Partnership = () => {
             <IoIosAddCircle className="mr-2" /> Add Partner
           </button>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-12 items-center text-center justify-center mt-5">
           {partnersData.map((partner) => (
             <div key={partner._id} className="text-center group">
-              {editingId === partner._id ? (
-                <input
-                  type="text"
-                  value={editedLogo}
-                  onChange={(e) => setEditedLogo(e.target.value)}
-                  className="text-[20px] tracking-tighter font-bold text-black mb-2 mt-10 border-b focus:outline-none"
-                  placeholder="Logo URL"
-                />
-              ) : (
-                <Image
-                  width={200}
-                  height={200}
-                  src={partner?.logo}
-                  alt={`${partner?.name} Logo`}
-                  className="mx-auto mb-2 h-16 object-contain saturate-0 group-hover:saturate-100"
-                />
-              )}
-
-              {editingId === partner._id ? (
-                <input
-                  type="text"
-                  value={editedName}
-                  onChange={(e) => setEditedName(e.target.value)}
-                  className="text-[20px] tracking-tighter font-bold text-black mb-2 mt-10 border-b focus:outline-none"
-                  autoFocus
-                />
-              ) : (
-                <h3
-                  className="text-[20px] tracking-tighter font-bold text-black mb-2 mt-10 cursor-pointer"
-                  onClick={() => handleEditClick(partner)}
-                >
-                  {partner.name}
-                </h3>
-              )}
-
-              {editingId === partner._id ? (
-                <textarea
-                  value={editedDescription}
-                  onChange={(e) => setEditedDescription(e.target.value)}
-                  className="text-black opacity-75 text-[15px] font-[400] mb-2 border-b focus:outline-none"
-                  placeholder="Description"
-                />
-              ) : (
-                <p className="text-black opacity-75 text-[15px] font-[400] mb-2">
-                  {partner.description}
-                </p>
-              )}
-
+              <Image
+                width={200}
+                height={200}
+                src={partner.logo}
+                alt={`${partner.name} Logo`}
+                className="mx-auto mb-2 h-16 object-contain saturate-0 group-hover:saturate-100"
+              />
+              <h3 className="text-[20px] tracking-tighter font-bold text-black mb-2 mt-10 cursor-pointer" onClick={() => handleEditClick(partner)}>
+                {partner.name}
+              </h3>
+              <p className="text-black opacity-75 text-[15px] font-[400] mb-2">{partner.description}</p>
               <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100">
-                <button
-                  onClick={() => {
-                    if (editingId === partner._id) {
-                      handleUpdate(partner._id);
-                    } else {
-                      handleEditClick(partner);
-                    }
-                  }}
-                  className="text-xl bg-slate-100 hover:bg-blue-600 hover:text-white duration-500 rounded-full p-2"
-                >
+                <button onClick={() => handleEditClick(partner)} className="text-xl bg-slate-100 hover:bg-blue-600 hover:text-white duration-500 rounded-full p-2">
                   <LiaEditSolid />
                 </button>
-                <button
-                  onClick={() => handleDelete(partner._id)}
-                  className="text-xl bg-slate-100 hover:bg-red-600 hover:text-white duration-500 rounded-full p-2"
-                >
+                <button onClick={() => handleDelete(partner._id)} className="text-xl bg-slate-100 hover:bg-red-600 hover:text-white duration-500 rounded-full p-2">
                   <RiDeleteBin6Fill />
                 </button>
               </div>
@@ -206,19 +143,22 @@ const Partnership = () => {
           ))}
         </div>
       </div>
-
-      <PartnerModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleAddPartner}
-        editedName={editedName}
-        setEditedName={setEditedName}
-        editedDescription={editedDescription}
-        setEditedDescription={setEditedDescription}
-        editedLogo={editedLogo}
-        setEditedLogo={setEditedLogo}
-      />
-
+      {modalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg p-6 w-[400px]">
+            <h2 className="text-lg font-bold mb-4">{editingId ? "Edit" : "Add New"} Partner</h2>
+            <form onSubmit={handleSubmit}>
+              <input type="file" onChange={handleFileChange} className="mb-4 w-full" />
+              <input type="text" value={editedName} onChange={(e) => setEditedName(e.target.value)} placeholder="Partner Name" className="border-b mb-4 w-full focus:outline-none" required />
+              <textarea value={editedDescription} onChange={(e) => setEditedDescription(e.target.value)} placeholder="Description" className="border-b mb-4 w-full focus:outline-none" required />
+              <div className="flex justify-between">
+                <button type="button" onClick={() => setModalOpen(false)} className="bg-gray-300 text-black px-4 py-2 rounded">Cancel</button>
+                <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">{editingId ? "Update" : "Add"} Partner</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       <ToastContainer />
     </div>
   );
