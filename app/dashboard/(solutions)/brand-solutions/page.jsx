@@ -1,104 +1,129 @@
-"use client";
-import React, { useEffect, useState } from "react";
-import { FaChevronDown, FaChevronUp } from "react-icons/fa";
-import Image from "next/image";
-import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+"use client"
+import { useEffect, useState } from "react"
+import { FaChevronDown, FaChevronUp } from "react-icons/fa"
+import Image from "next/image"
+import axios from "axios"
+import { ToastContainer, toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 const useFetchBrandSolutions = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/brand-solutions`
-        );
-        setData(response.data[0]);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/brand-solutions`)
+        setData(response.data[0])
       } catch (err) {
-        setError("Error fetching brand solutions data");
+        setError("Error fetching brand solutions data")
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
-  return { data, loading, error, setData };
-};
+  return { data, loading, error, setData }
+}
 
 const EditModal = ({ data, isOpen, onClose, onSave }) => {
-  const [formData, setFormData] = useState(data);
+  const [formData, setFormData] = useState(data)
+  const [newLogoFile, setNewLogoFile] = useState(null)
+  const [newLogoPreview, setNewLogoPreview] = useState(null)
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     if (data) {
-      setFormData(data);
+      setFormData(data)
     }
-  }, [data]);
+  }, [data])
 
   const handleChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }
 
   const handleItemChange = (index, field, value) => {
-    const updatedItems = [...formData.items];
-    updatedItems[index][field] = value;
-    setFormData({ ...formData, items: updatedItems });
-  };
+    const updatedItems = [...formData.items]
+    updatedItems[index][field] = value
+    setFormData({ ...formData, items: updatedItems })
+  }
 
-  const handleBrandChange = (index, field, value) => {
-    const updatedBrands = [...formData.brand];
-    updatedBrands[index][field] = value;
-    setFormData({ ...formData, brand: updatedBrands });
-  };
+  const handleNewLogoChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setNewLogoFile(file)
+      setNewLogoPreview(URL.createObjectURL(file))
+    }
+  }
 
-  const handleSave = () => {
-    onSave(formData);
-    onClose();
-  };
+  const uploadImage = async (file) => {
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("upload_preset", "habson") // Replace with your Cloudinary upload preset
 
-  // Function to add a new item
+    try {
+      const response = await axios.post("https://api.cloudinary.com/v1_1/dov6k7xdk/image/upload", formData)
+      return response.data.secure_url
+    } catch (error) {
+      console.error("Error uploading image:", error)
+      toast.error("Failed to upload image!")
+      return null
+    }
+  }
+
+  const handleSave = async () => {
+    setUploading(true)
+    try {
+      let updatedBrands = [...formData.brand]
+
+      if (newLogoFile) {
+        const imageUrl = await uploadImage(newLogoFile)
+        if (!imageUrl) return
+
+        updatedBrands = [...updatedBrands, { logo: imageUrl }]
+      }
+
+      const updatedFormData = { ...formData, brand: updatedBrands }
+      onSave(updatedFormData)
+      onClose()
+    } catch (error) {
+      console.error("Error saving data:", error)
+      toast.error("Failed to save data!")
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const handleAddItem = () => {
     setFormData((prev) => ({
       ...prev,
-      items: [...(prev.items || []), { title: "", content: "" }], // Add a new item
-    }));
-  };
+      items: [...(prev.items || []), { title: "", content: "" }],
+    }))
+  }
 
-  // Function to remove an item
   const handleRemoveItem = (index) => {
     setFormData((prev) => {
-      const updatedItems = [...(prev.items || [])];
-      updatedItems.splice(index, 1); // Remove the item at the specified index
-      return { ...prev, items: updatedItems };
-    });
-  };
+      const updatedItems = [...(prev.items || [])]
+      updatedItems.splice(index, 1)
+      return { ...prev, items: updatedItems }
+    })
+  }
 
-  // Function to add a new brand
-  const handleAddBrand = () => {
-    setFormData((prevData) => ({
-      ...prevData,
-      brand: [...(prevData.brand || []), { logo: "" }], // Add a new brand object
-    }));
-  };
-
-  // Function to remove a brand
   const handleRemoveBrand = (index) => {
     setFormData((prevData) => {
-      const updatedBrands = [...(prevData.brand || [])];
-      updatedBrands.splice(index, 1); // Remove the brand at the specified index
+      const updatedBrands = [...(prevData.brand || [])]
+      updatedBrands.splice(index, 1)
       return {
         ...prevData,
         brand: updatedBrands,
-      };
-    });
-  };
+      }
+    })
+  }
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -117,7 +142,7 @@ const EditModal = ({ data, isOpen, onClose, onSave }) => {
 
         {/* Items */}
         <div className="mb-4">
-          <div className="flex  items-center mb-4">
+          <div className="flex items-center mb-4">
             <h3 className="font-semibold mb-2 text-lg text-gray-800">Items</h3>
           </div>
           {formData.items?.map((item, index) => (
@@ -129,18 +154,14 @@ const EditModal = ({ data, isOpen, onClose, onSave }) => {
                 <input
                   className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
                   value={item.title}
-                  onChange={(e) =>
-                    handleItemChange(index, "title", e.target.value)
-                  }
+                  onChange={(e) => handleItemChange(index, "title", e.target.value)}
                   placeholder="Title"
                 />
                 <textarea
                   className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[100px]"
                   rows="2"
                   value={item.content}
-                  onChange={(e) =>
-                    handleItemChange(index, "content", e.target.value)
-                  }
+                  onChange={(e) => handleItemChange(index, "content", e.target.value)}
                   placeholder="Content"
                 />
               </div>
@@ -170,38 +191,45 @@ const EditModal = ({ data, isOpen, onClose, onSave }) => {
           <div className="flex items-center mb-4">
             <h3 className="font-semibold text-lg text-gray-800">Brand Logos</h3>
           </div>
-          {formData.brand?.map((brand, index) => (
-            <div
-              key={brand._id || index}
-              className="mb-4 flex items-center gap-4 bg-white shadow-md rounded-lg p-4 border border-gray-200"
-            >
-              <input
-                className="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={brand.logo}
-                onChange={(e) =>
-                  handleBrandChange(index, "logo", e.target.value)
-                }
-                placeholder="Logo URL"
-              />
-              <button
-                type="button"
-                className="flex-shrink-0 p-2 rounded-full bg-red-100 text-red-500 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500"
-                onClick={() => handleRemoveBrand(index)}
-                aria-label="Remove Logo"
-              >
-                ✖
-              </button>
-            </div>
-          ))}
-          <div className="flex justify-end">
-            <button
-              type="button"
-              className="px-6 py-2 text-white font-semibold rounded-full bg-gradient-to-r from-[#125b5c] to-[#17a398] hover:from-[#17a398] hover:to-[#125b5c] focus:outline-none focus:ring-2 focus:ring-[#17a398] focus:ring-offset-2 shadow-md transition-all duration-200"
-              onClick={handleAddBrand}
-            >
-              + Add Logo
-            </button>
+          <div className="grid grid-cols-3 gap-4">
+            {formData.brand?.map((brand, index) => (
+              <div key={brand._id || index} className="relative">
+                <Image
+                  src={brand.logo || "/placeholder.svg"}
+                  alt={`Brand logo ${index + 1}`}
+                  width={100}
+                  height={100}
+                  className="w-full h-auto object-contain"
+                />
+                <button
+                  type="button"
+                  className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-full"
+                  onClick={() => handleRemoveBrand(index)}
+                  aria-label="Remove Logo"
+                >
+                  ✖
+                </button>
+              </div>
+            ))}
           </div>
+        </div>
+
+        {/* New Logo Upload */}
+        <div className="mb-6">
+          <label className="block mb-2 font-semibold">Upload New Logo</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleNewLogoChange}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {newLogoPreview && (
+            <img
+              src={newLogoPreview || "/placeholder.svg"}
+              alt="New logo preview"
+              className="mt-4 rounded-lg w-full max-w-xs"
+            />
+          )}
         </div>
 
         <div className="flex justify-center space-x-4">
@@ -214,44 +242,45 @@ const EditModal = ({ data, isOpen, onClose, onSave }) => {
           <button
             className="px-6 py-2 text-white font-semibold rounded-full bg-gradient-to-r from-[#125b5c] to-[#17a398] hover:from-[#17a398] hover:to-[#125b5c] focus:outline-none focus:ring-2 focus:ring-[#17a398] focus:ring-offset-2 shadow-md transition-all duration-200"
             onClick={handleSave}
+            disabled={uploading}
           >
-            Save
+            {uploading ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 const BrandSolutions = () => {
-  const { data, loading, error, setData } = useFetchBrandSolutions();
-  const [open, setOpen] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { data, loading, error, setData } = useFetchBrandSolutions()
+  const [open, setOpen] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   const toggle = (index) => {
-    setOpen(open === index ? null : index);
-  };
+    setOpen(open === index ? null : index)
+  }
 
   const handleEditClick = () => {
-    setIsModalOpen(true);
-  };
+    setIsModalOpen(true)
+  }
 
   const handleSave = async (updatedData) => {
     try {
       const response = await axios.patch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/brand-solutions/${data._id}`,
-        updatedData
-      );
-      setData(response.data.data);
-      toast.success("Data successfully updated!");
+        updatedData,
+      )
+      setData(response.data.data)
+      toast.success("Data successfully updated!")
     } catch (error) {
-      toast.error("Error updating data.");
-      console.error("Error updating brand solutions data:", error);
+      toast.error("Error updating data.")
+      console.error("Error updating brand solutions data:", error)
     }
-  };
+  }
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>{error}</p>;
+  if (loading) return <p>Loading...</p>
+  if (error) return <p>{error}</p>
 
   return (
     <section className="px-[5%] py-12 bg-white rounded-[20px] font-sora">
@@ -259,9 +288,7 @@ const BrandSolutions = () => {
         {/* Left Side */}
         <div>
           <div className="flex justify-between items-center mb-5">
-            <h2 className="text-3xl md:text-4xl lg:text-[48px] text-[#125b5c] font-bold">
-              Brand Solutions
-            </h2>
+            <h2 className="text-3xl md:text-4xl lg:text-[48px] text-[#125b5c] font-bold">Brand Solutions</h2>
             <button
               className="px-6 py-2 text-white font-semibold rounded-full bg-gradient-to-r from-[#125b5c] to-[#17a398] hover:from-[#17a398] hover:to-[#125b5c] focus:outline-none focus:ring-2 focus:ring-[#17a398] focus:ring-offset-2 shadow-md transition-all duration-200"
               onClick={handleEditClick}
@@ -269,9 +296,7 @@ const BrandSolutions = () => {
               Update
             </button>
           </div>
-          <p className="text-[18px] font-normal text-black mb-5 text-justify">
-            {data?.shortDescription?.[0]}
-          </p>
+          <p className="text-[18px] font-normal text-black mb-5 text-justify">{data?.shortDescription?.[0]}</p>
           <hr className="h-[3px] bg-black mb-5 max-w-52" />
           <p className="font-[600] text-[18px] text-[#125b5c] mb-10">
             Proud to work with the biggest brands in India & Abroad
@@ -282,7 +307,7 @@ const BrandSolutions = () => {
                 key={brand._id}
                 width={100}
                 height={100}
-                src={brand.logo}
+                src={brand.logo || "/placeholder.svg"}
                 alt="Brand Logo"
                 className="h-16 object-contain saturate-0 hover:saturate-100"
               />
@@ -319,15 +344,11 @@ const BrandSolutions = () => {
       </div>
 
       {/* Edit Modal */}
-      <EditModal
-        data={data}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSave}
-      />
+      <EditModal data={data} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSave} />
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
     </section>
-  );
-};
+  )
+}
 
-export default BrandSolutions;
+export default BrandSolutions
+
