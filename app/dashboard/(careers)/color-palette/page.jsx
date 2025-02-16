@@ -15,6 +15,8 @@ const ColorPalate = () => {
     title: "",
     description: "",
   });
+  const [imagePreview, setImagePreview] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // Fetch cards from API
   useEffect(() => {
@@ -39,10 +41,20 @@ const ColorPalate = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+  // Handle image file change
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImagePreview(URL.createObjectURL(file));
+      setFormData({ ...formData, imageUrl: file });
+    }
+  };
+
   // Open the modal for adding or editing
   const openModal = (card = null) => {
     if (card) {
       setFormData(card);
+      setImagePreview(card.imageUrl);
       setIsEditing(true);
     } else {
       setFormData({
@@ -51,6 +63,7 @@ const ColorPalate = () => {
         title: "",
         description: "",
       });
+      setImagePreview(null);
       setIsEditing(false);
     }
     setIsModalOpen(true);
@@ -58,14 +71,43 @@ const ColorPalate = () => {
 
   const closeModal = () => {
     setIsModalOpen(false);
+    setImagePreview(null);
+  };
+
+  // Upload image to Cloudinary
+  const uploadImage = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "habson"); // Replace with your Cloudinary upload preset
+
+    try {
+      const response = await axios.post(
+        "https://api.cloudinary.com/v1_1/dov6k7xdk/image/upload",
+        formData
+      );
+      return response.data.secure_url;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image!");
+      return null;
+    }
   };
 
   // Add a new card
   const addCard = async () => {
+    setLoading(true);
     try {
+      let imageUrl = formData.imageUrl;
+
+      // Upload new image if a file is selected
+      if (typeof formData.imageUrl === "object") {
+        imageUrl = await uploadImage(formData.imageUrl);
+        if (!imageUrl) return;
+      }
+
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/color-palette`,
-        formData
+        { ...formData, imageUrl }
       );
       setCards([...cards, response.data]);
       toast.success("Card added successfully!");
@@ -73,15 +115,26 @@ const ColorPalate = () => {
     } catch (error) {
       console.error("Error adding card:", error);
       toast.error("Failed to add card!");
+    } finally {
+      setLoading(false);
     }
   };
 
   // Update an existing card
   const updateCard = async () => {
+    setLoading(true);
     try {
+      let imageUrl = formData.imageUrl;
+
+      // Upload new image if a file is selected
+      if (typeof formData.imageUrl === "object") {
+        imageUrl = await uploadImage(formData.imageUrl);
+        if (!imageUrl) return;
+      }
+
       const response = await axios.patch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/color-palette/${formData._id}`,
-        formData
+        { ...formData, imageUrl }
       );
       setCards(
         cards.map((card) => (card._id === formData._id ? response.data : card))
@@ -91,6 +144,8 @@ const ColorPalate = () => {
     } catch (error) {
       console.error("Error updating card:", error);
       toast.error("Failed to update card!");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -127,18 +182,18 @@ const ColorPalate = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cards.map((card) => (
           <div
             key={card._id}
-            className="hover:-translate-y-5 duration-500 mt-5 bg-white rounded-lg shadow-md "
+            className="hover:-translate-y-5 duration-500 mt-5 bg-white rounded-lg shadow-md"
           >
             <div className="h-[400px]">
               <Image
                 width={400}
                 height={450}
                 className="w-full h-[400px] object-cover rounded-t-lg"
-                src={card?.imageUrl}
+                src={card.imageUrl}
                 alt={card.title}
               />
             </div>
@@ -185,14 +240,25 @@ const ColorPalate = () => {
             <h2 className="text-2xl font-bold mb-4">
               {isEditing ? "Edit Card" : "Add New Card"}
             </h2>
-            <label className="block mb-2">Image URL:</label>
+
+            {/* Image Upload */}
+            <label className="block mb-2">Image:</label>
             <input
-              type="text"
-              name="imageUrl"
-              value={formData.imageUrl}
-              onChange={handleInputChange}
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
               className="w-full px-3 py-2 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
+            {imagePreview && (
+              <Image
+                src={imagePreview}
+                alt="Preview"
+                width={200}
+                height={200}
+                className="mb-4 rounded-lg"
+              />
+            )}
+
             <label className="block mb-2">Title:</label>
             <input
               type="text"
@@ -218,8 +284,15 @@ const ColorPalate = () => {
               <button
                 onClick={isEditing ? updateCard : addCard}
                 className="px-4 py-2 bg-teal-500 text-white font-semibold rounded hover:bg-teal-600"
+                disabled={loading}
               >
-                {isEditing ? "Update" : "Add"}
+                {loading
+                  ? isEditing
+                    ? "Updating..."
+                    : "Adding..."
+                  : isEditing
+                  ? "Update"
+                  : "Add"}
               </button>
             </div>
           </div>
