@@ -36,18 +36,68 @@ const EditModal = ({ achievement, isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState(
     achievement || { title: "", description: [""], image: "", link: "" }
   );
+  const [file, setFile] = useState(null); // For image file
+  const [imagePreview, setImagePreview] = useState(null); // For image preview
+  const [uploading, setUploading] = useState(false); // For upload loading state
 
   useEffect(() => {
-    if (achievement) setFormData(achievement);
+    if (achievement) {
+      setFormData(achievement);
+      setImagePreview(achievement.image); // Set image preview if editing
+    }
   }, [achievement]);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
-    onSave(formData);
-    onClose();
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setImagePreview(URL.createObjectURL(selectedFile)); // Set image preview
+    }
+  };
+
+  const uploadImage = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "habson"); // Replace with your Cloudinary upload preset
+
+    try {
+      const response = await axios.post(
+        "https://api.cloudinary.com/v1_1/dov6k7xdk/image/upload",
+        formData
+      );
+      return response.data.secure_url; // Return the secure URL
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image!");
+      return null;
+    }
+  };
+
+  const handleSave = async () => {
+    setUploading(true);
+    try {
+      let imageUrl = formData.image;
+
+      // Upload new image if a file is selected
+      if (file) {
+        imageUrl = await uploadImage(file);
+        if (!imageUrl) return; // Stop if upload fails
+      }
+
+      // Update formData with the new image URL
+      const updatedData = { ...formData, image: imageUrl };
+      onSave(updatedData); // Pass updated data to parent
+      onClose();
+    } catch (error) {
+      console.error("Error saving achievement:", error);
+      toast.error("Failed to save achievement!");
+    } finally {
+      setUploading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -79,14 +129,23 @@ const EditModal = ({ achievement, isOpen, onClose, onSave }) => {
           }
         />
 
-        {/* Image URL */}
-        <label className="block mb-2 font-semibold">Image URL</label>
+        {/* Image Upload */}
+        <label className="block mb-2 font-semibold">Image</label>
         <input
-          type="text"
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
           className="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-none focus:border-[#125b5c]"
-          value={formData.image}
-          onChange={(e) => handleChange("image", e.target.value)}
         />
+        {imagePreview && (
+          <Image
+            src={imagePreview}
+            alt="Preview"
+            width={200}
+            height={200}
+            className="mb-4 rounded-lg"
+          />
+        )}
 
         {/* Link */}
         <label className="block mb-2 font-semibold">Link</label>
@@ -107,8 +166,9 @@ const EditModal = ({ achievement, isOpen, onClose, onSave }) => {
           <button
             className="px-4 py-2 text-white font-semibold rounded-full bg-gradient-to-r from-[#125b5c] to-[#17a398] hover:from-[#17a398] hover:to-[#125b5c] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#17a398] shadow-md transition-all duration-200"
             onClick={handleSave}
+            disabled={uploading}
           >
-            Save
+            {uploading ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
