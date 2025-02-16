@@ -46,34 +46,33 @@ const UpdateBlogModal = ({ workId, modalId, updateWork }) => {
         setLoading(true)
         try {
           const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blogs/${workId}`)
-          
           if (!response.ok) {
             throw new Error("Failed to fetch blog data")
           }
-          const { work } = await response.json()
-          console.log("Work data:", work)
+          const { blog } = await response.json()
+          console.log("Blog data:", blog)
 
           // Set default values for all fields
-          setValue("title", work.title)
-          setValue("detailsTitle", work.detailsTitle)
-          setValue("category", work.category)
-          setValue("industry", work.industry)
-          setValue("imgUrl", work.img)
-          setValue("videoIframeURL", work.videoIframeURL)
-          setValue("serviceDetails", work.serviceDetails)
-          setValue("isTrending", work.isTrending)
+          setValue("title", blog.title)
+          setValue("detailsTitle", blog.detailsTitle)
+          setValue("category", blog.category)
+          setValue("industry", blog.industry)
+          setValue("imgUrl", blog.img)
+          setValue("videoIframeURL", blog.videoIframeURL)
+          setValue("serviceDetails", blog.serviceDetails)
+          setValue("isTrending", blog.isTrending)
 
           // Set services
-          if (Array.isArray(work.services)) {
+          if (Array.isArray(blog.services)) {
             replace(
-              work.services.map(({ serviceName, description }) => ({
+              blog.services.map(({ serviceName, description }) => ({
                 serviceName,
                 description,
               })),
             )
           }
 
-          setImagePreview(work.img)
+          setImagePreview(blog.img)
         } catch (error) {
           console.error("Error fetching blog data:", error.message)
           toast.error("Failed to load blog data. Please try again.")
@@ -83,7 +82,7 @@ const UpdateBlogModal = ({ workId, modalId, updateWork }) => {
       }
       fetchWorkData()
     }
-  }, [workId, setValue, replace, watch])
+  }, [workId, setValue, replace])
 
   const uploadImage = async (file) => {
     const formData = new FormData()
@@ -132,22 +131,37 @@ const UpdateBlogModal = ({ workId, modalId, updateWork }) => {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to update blog")
+        throw new Error("Failed to update work")
       }
 
       const result = await response.json()
       updateWork(result)
-      toast.success("Blog updated successfully.")
+      toast.success("Work updated successfully.")
 
       const modal = document.getElementById(modalId)
       if (modal) modal.close()
     } catch (error) {
-      console.error("Error updating blog:", error.message)
-      toast.error("Failed to update blog. Please try again.")
+      console.error("Error updating work:", error.message)
+      toast.error("Failed to update work. Please try again.")
     } finally {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (!loading) {
+      console.log("Form values after setting:", {
+        title: watch("title"),
+        detailsTitle: watch("detailsTitle"),
+        category: watch("category"),
+        industry: watch("industry"),
+        imgUrl: watch("imgUrl"),
+        videoIframeURL: watch("videoIframeURL"),
+        serviceDetails: watch("serviceDetails"),
+        isTrending: watch("isTrending"),
+      })
+    }
+  }, [loading, watch])
 
   useEffect(() => {
     console.log("Form values changed:", {
@@ -184,7 +198,7 @@ const UpdateBlogModal = ({ workId, modalId, updateWork }) => {
                   type="text"
                   {...register("title", { required: "Title is required" })}
                   className="input input-bordered"
-                  defaultValue={watch("title")}
+                  defaultValue={watch("title") || ""}
                 />
                 {errors.title && <span className="text-red-500">{errors.title.message}</span>}
               </div>
@@ -198,7 +212,7 @@ const UpdateBlogModal = ({ workId, modalId, updateWork }) => {
                     required: "Details title is required",
                   })}
                   className="input input-bordered"
-                  defaultValue={watch("detailsTitle")}
+                  defaultValue={watch("detailsTitle") || ""}
                 />
                 {errors.detailsTitle && <span className="text-red-500">{errors.detailsTitle.message}</span>}
               </div>
@@ -209,7 +223,7 @@ const UpdateBlogModal = ({ workId, modalId, updateWork }) => {
                 <select
                   {...register("category", { required: "Category is required" })}
                   className="select select-bordered"
-                  defaultValue={watch("category")}
+                  defaultValue={watch("category") || ""}
                 >
                   <option value="">Select a category</option>
                   <option value="Casestudy">Casestudy</option>
@@ -225,7 +239,7 @@ const UpdateBlogModal = ({ workId, modalId, updateWork }) => {
                   type="text"
                   {...register("industry", { required: "Industry is required" })}
                   className="input input-bordered"
-                  defaultValue={watch("industry")}
+                  defaultValue={watch("industry") || ""}
                 />
                 {errors.industry && <span className="text-red-500">{errors.industry.message}</span>}
               </div>
@@ -245,7 +259,7 @@ const UpdateBlogModal = ({ workId, modalId, updateWork }) => {
                     {...register("imgUrl", { required: "Image URL is required if no file is uploaded" })}
                     className="input input-bordered w-full"
                     placeholder="Or enter image URL"
-                    defaultValue={watch("imgUrl")}
+                    defaultValue={watch("imgUrl") || ""}
                   />
                 </div>
                 {imagePreview && (
@@ -269,7 +283,7 @@ const UpdateBlogModal = ({ workId, modalId, updateWork }) => {
                     required: "Video Iframe URL is required",
                   })}
                   className="input input-bordered"
-                  defaultValue={watch("videoIframeURL")}
+                  defaultValue={watch("videoIframeURL") || ""}
                 />
                 {errors.videoIframeURL && <span className="text-red-500">{errors.videoIframeURL.message}</span>}
               </div>
@@ -283,7 +297,7 @@ const UpdateBlogModal = ({ workId, modalId, updateWork }) => {
                   })}
                   className="textarea textarea-bordered"
                   rows={4}
-                  defaultValue={watch("serviceDetails")}
+                  defaultValue={watch("serviceDetails") || ""}
                 ></textarea>
                 {errors.serviceDetails && <span className="text-red-500">{errors.serviceDetails.message}</span>}
               </div>
@@ -299,6 +313,7 @@ const UpdateBlogModal = ({ workId, modalId, updateWork }) => {
                       })}
                       placeholder="Service Name"
                       className="input input-bordered flex-grow"
+                      defaultValue={watch(`services.${index}.serviceName`) || ""}
                     />
                     <input
                       {...register(`services.${index}.description`, {
@@ -306,6 +321,7 @@ const UpdateBlogModal = ({ workId, modalId, updateWork }) => {
                       })}
                       placeholder="Service Description"
                       className="input input-bordered flex-grow"
+                      defaultValue={watch(`services.${index}.description`) || ""}
                     />
                     <button type="button" onClick={() => remove(index)} className="btn btn-error">
                       Remove
@@ -327,7 +343,7 @@ const UpdateBlogModal = ({ workId, modalId, updateWork }) => {
                     type="checkbox"
                     {...register("isTrending")}
                     className="toggle toggle-primary"
-                    defaultChecked={watch("isTrending")}
+                    defaultChecked={watch("isTrending") || false}
                   />
                 </label>
               </div>

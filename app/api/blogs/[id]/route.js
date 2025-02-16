@@ -33,7 +33,7 @@ export async function PATCH(req, { params }) {
     await connectToDB();
 
     // Update the work document with the provided _id
-    const updatedBlog = await Works.findByIdAndUpdate(
+    const updatedWork = await Blogs.findByIdAndUpdate(
       id,
       {
         title,
@@ -51,12 +51,12 @@ export async function PATCH(req, { params }) {
     );
 
     // Check if the document was found and updated
-    if (!updatedBlog) {
-      return NextResponse.json({ message: "Blog not found" }, { status: 404 });
+    if (!updatedWork) {
+      return NextResponse.json({ message: "Work not found" }, { status: 404 });
     }
 
     return NextResponse.json(
-      { message: "Blog updated successfully", blog: updatedBlog },
+      { message: "Work updated successfully", work: updatedWork },
       { status: 200 }
     );
   } catch (error) {
@@ -67,3 +67,4 @@ export async function PATCH(req, { params }) {
     );
   }
 }
+
