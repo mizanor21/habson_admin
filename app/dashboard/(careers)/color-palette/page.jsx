@@ -105,16 +105,31 @@ const ColorPalate = () => {
         if (!imageUrl) return;
       }
 
+      const newCard = { ...formData, imageUrl };
+
+      // Optimistically update the UI
+      setCards((prev) => [...prev, { ...newCard, _id: Date.now().toString() }]);
+
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/color-palette`,
-        { ...formData, imageUrl }
+        newCard
       );
-      setCards([...cards, response.data]);
+
+      // Replace the temporary card with the actual card from the API
+      setCards((prev) =>
+        prev.map((card) =>
+          card._id === Date.now().toString() ? response.data : card
+        )
+      );
+
       toast.success("Card added successfully!");
       closeModal();
     } catch (error) {
       console.error("Error adding card:", error);
       toast.error("Failed to add card!");
+
+      // Revert the state if the API call fails
+      setCards((prev) => prev.filter((card) => card._id !== Date.now().toString()));
     } finally {
       setLoading(false);
     }
@@ -132,18 +147,37 @@ const ColorPalate = () => {
         if (!imageUrl) return;
       }
 
+      const updatedCard = { ...formData, imageUrl };
+
+      // Optimistically update the UI
+      setCards((prev) =>
+        prev.map((card) =>
+          card._id === formData._id ? { ...card, ...updatedCard } : card
+        )
+      );
+
       const response = await axios.patch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/color-palette/${formData._id}`,
-        { ...formData, imageUrl }
+        updatedCard
       );
-      setCards(
-        cards.map((card) => (card._id === formData._id ? response.data : card))
+
+      // Update the state with the response from the API
+      setCards((prev) =>
+        prev.map((card) => (card._id === formData._id ? response.data : card))
       );
+
       toast.success("Card updated successfully!");
       closeModal();
     } catch (error) {
       console.error("Error updating card:", error);
       toast.error("Failed to update card!");
+
+      // Revert the state if the API call fails
+      setCards((prev) =>
+        prev.map((card) =>
+          card._id === formData._id ? { ...card, ...formData } : card
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -152,14 +186,20 @@ const ColorPalate = () => {
   // Delete a card
   const deleteCard = async (id) => {
     try {
+      // Optimistically update the UI
+      setCards((prev) => prev.filter((card) => card._id !== id));
+
       await axios.delete(
         `${process.env.NEXT_PUBLIC_API_URL}/api/color-palette/?id=${id}`
       );
-      setCards(cards.filter((card) => card._id !== id));
+
       toast.success("Card deleted successfully!");
     } catch (error) {
       console.error("Error deleting card:", error);
       toast.error("Failed to delete card!");
+
+      // Revert the state if the API call fails
+      setCards((prev) => [...prev, cards.find((card) => card._id === id)]);
     }
   };
 
