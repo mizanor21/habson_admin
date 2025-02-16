@@ -33,6 +33,9 @@ const useFetchMediaSolutions = () => {
 
 const EditModal = ({ data, isOpen, onClose, onSave }) => {
   const [formData, setFormData] = useState(data);
+  const [newLogoFile, setNewLogoFile] = useState(null);
+  const [newLogoPreview, setNewLogoPreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (data) {
@@ -50,52 +53,79 @@ const EditModal = ({ data, isOpen, onClose, onSave }) => {
     setFormData({ ...formData, items: updatedItems });
   };
 
-  const handleBrandChange = (index, field, value) => {
-    const updatedBrands = [...formData.brand];
-    updatedBrands[index][field] = value;
-    setFormData({ ...formData, brand: updatedBrands });
+  const handleNewLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setNewLogoFile(file);
+      setNewLogoPreview(URL.createObjectURL(file));
+    }
   };
 
-  // Function to add a new item
+  const uploadImage = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "habson"); // Replace with your Cloudinary upload preset
+
+    try {
+      const response = await axios.post(
+        "https://api.cloudinary.com/v1_1/dov6k7xdk/image/upload",
+        formData
+      );
+      return response.data.secure_url;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image!");
+      return null;
+    }
+  };
+
+  const handleSave = async () => {
+    setUploading(true);
+    try {
+      let updatedBrands = [...formData.brand];
+
+      if (newLogoFile) {
+        const imageUrl = await uploadImage(newLogoFile);
+        if (!imageUrl) return;
+
+        updatedBrands = [...updatedBrands, { logo: imageUrl }];
+      }
+
+      const updatedFormData = { ...formData, brand: updatedBrands };
+      onSave(updatedFormData);
+      onClose();
+    } catch (error) {
+      console.error("Error saving data:", error);
+      toast.error("Failed to save data!");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleAddItem = () => {
     setFormData((prev) => ({
       ...prev,
-      items: [...(prev.items || []), { title: "", content: "" }], // Add a new item
+      items: [...(prev.items || []), { title: "", content: "" }],
     }));
   };
 
-  // Function to remove an item
   const handleRemoveItem = (index) => {
     setFormData((prev) => {
       const updatedItems = [...(prev.items || [])];
-      updatedItems.splice(index, 1); // Remove the item at the specified index
+      updatedItems.splice(index, 1);
       return { ...prev, items: updatedItems };
     });
   };
 
-  // Function to add a new brand
-  const handleAddBrand = () => {
-    setFormData((prevData) => ({
-      ...prevData,
-      brand: [...(prevData.brand || []), { logo: "" }], // Add a new brand object
-    }));
-  };
-
-  // Function to remove a brand
   const handleRemoveBrand = (index) => {
     setFormData((prevData) => {
       const updatedBrands = [...(prevData.brand || [])];
-      updatedBrands.splice(index, 1); // Remove the brand at the specified index
+      updatedBrands.splice(index, 1);
       return {
         ...prevData,
         brand: updatedBrands,
       };
     });
-  };
-
-  const handleSave = () => {
-    onSave(formData);
-    onClose();
   };
 
   if (!isOpen) return null;
@@ -117,15 +147,17 @@ const EditModal = ({ data, isOpen, onClose, onSave }) => {
 
         {/* Items */}
         <div className="mb-4">
-          <h3 className="font-semibold mb-2">Items</h3>
+          <div className="flex items-center mb-4">
+            <h3 className="font-semibold mb-2 text-lg text-gray-800">Items</h3>
+          </div>
           {formData.items?.map((item, index) => (
             <div
-              key={item._id}
+              key={item._id || index}
               className="mb-4 bg-white shadow-lg rounded-lg p-4 flex gap-4 items-start border border-gray-200"
             >
               <div className="flex-1">
                 <input
-                  className="w-full p-3 border border-gray-300 rounded mb-2 focus:outline-none focus:border-blue-500"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
                   value={item.title}
                   onChange={(e) =>
                     handleItemChange(index, "title", e.target.value)
@@ -133,7 +165,7 @@ const EditModal = ({ data, isOpen, onClose, onSave }) => {
                   placeholder="Title"
                 />
                 <textarea
-                  className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:border-blue-500 resize-none min-h-[100px]"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none min-h-[100px]"
                   rows="2"
                   value={item.content}
                   onChange={(e) =>
@@ -164,40 +196,52 @@ const EditModal = ({ data, isOpen, onClose, onSave }) => {
         </div>
 
         {/* Brand Logos */}
-        <div className="mb-4">
-          <h3 className="font-semibold mb-2">Brand Logos</h3>
-          {formData.brand?.map((brand, index) => (
-            <div
-              key={brand._id}
-              className="mb-4 flex items-center gap-4 bg-white shadow-md rounded-lg p-4 border border-gray-200"
-            >
-              <input
-                className="w-full p-3 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                value={brand.logo}
-                onChange={(e) =>
-                  handleBrandChange(index, "logo", e.target.value)
-                }
-                placeholder="Logo URL"
-              />
-              <button
-                type="button"
-                className="flex-shrink-0 p-2 rounded-full bg-red-100 text-red-500 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500"
-                onClick={() => handleRemoveBrand(index)}
-                aria-label="Remove Logo"
-              >
-                ✖
-              </button>
-            </div>
-          ))}
-          <div className="flex justify-end">
-            <button
-              type="button"
-              className="px-6 py-2 text-white font-semibold rounded-full bg-gradient-to-r from-[#125b5c] to-[#17a398] hover:from-[#17a398] hover:to-[#125b5c] focus:outline-none focus:ring-2 focus:ring-[#17a398] focus:ring-offset-2 shadow-md transition-all duration-200"
-              onClick={handleAddBrand}
-            >
-              + Add Logo
-            </button>
+        <div className="mb-6">
+          <div className="flex items-center mb-4">
+            <h3 className="font-semibold text-lg text-gray-800">Brand Logos</h3>
           </div>
+          <div className="grid grid-cols-3 gap-4">
+            {formData.brand?.map((brand, index) => (
+              <div
+                key={brand._id || index}
+                className="relative"
+              >
+                <Image
+                  src={brand.logo || "/placeholder.svg"}
+                  alt={`Brand logo ${index + 1}`}
+                  width={100}
+                  height={100}
+                  className="w-full h-auto object-contain"
+                />
+                <button
+                  type="button"
+                  className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-full"
+                  onClick={() => handleRemoveBrand(index)}
+                  aria-label="Remove Logo"
+                >
+                  ✖
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* New Logo Upload */}
+        <div className="mb-6">
+          <label className="block mb-2 font-semibold">Upload New Logo</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleNewLogoChange}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {newLogoPreview && (
+            <img
+              src={newLogoPreview || "/placeholder.svg"}
+              alt="New logo preview"
+              className="mt-4 rounded-lg w-full max-w-xs"
+            />
+          )}
         </div>
 
         <div className="flex justify-center space-x-4">
@@ -210,8 +254,9 @@ const EditModal = ({ data, isOpen, onClose, onSave }) => {
           <button
             className="px-6 py-2 text-white font-semibold rounded-full bg-gradient-to-r from-[#125b5c] to-[#17a398] hover:from-[#17a398] hover:to-[#125b5c] focus:outline-none focus:ring-2 focus:ring-[#17a398] focus:ring-offset-2 shadow-md transition-all duration-200"
             onClick={handleSave}
+            disabled={uploading}
           >
-            Save
+            {uploading ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
@@ -278,7 +323,7 @@ const MediaSolutions = () => {
                 key={brand._id}
                 width={100}
                 height={100}
-                src={brand.logo}
+                src={brand.logo || "/placeholder.svg"}
                 alt="Brand Logo"
                 className="h-16 object-contain saturate-0 hover:saturate-100"
               />
