@@ -1,26 +1,25 @@
-import mongoose from "mongoose";
+import mongoose from "mongoose"
 
 const workSchema = new mongoose.Schema(
   {
-    id: Number,
-    category: String,
-    thumbnail: String,
-    title: String,
-    detailsTitle: String,
+    category: { type: String, },
+    thumbnail: { type: String },
+    title: { type: String, },
+    detailsTitle: { type: String, },
     services: [
       {
-        serviceName: String,
-        description: String,
+        serviceName: { type: String, },
+        description: { type: String, },
       },
     ],
-    serviceDetails: String,
-    industry: String,
-    img: String,
-    videoIframeURL: String,
-    isTrending: Boolean,
+    serviceDetails: { type: String, },
+    industry: { type: String, },
+    img: { type: String },
+    videoIframeURL: { type: String },
+    isTrending: { type: Boolean, default: false },
   },
-  { timestamps: true }
-);
+  { timestamps: true },
+)
 
-export const Works =
-  mongoose.models.Works || mongoose.model("Works", workSchema);
+export const Works = mongoose.models.Works || mongoose.model("Works", workSchema)
+
