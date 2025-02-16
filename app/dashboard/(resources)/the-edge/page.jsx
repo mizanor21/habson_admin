@@ -2,7 +2,8 @@
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { MdOutlineArrowRightAlt } from "react-icons/md";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Edge = () => {
   const [edges, setEdges] = useState([]);
@@ -17,6 +18,8 @@ const Edge = () => {
   });
   const [isEdit, setIsEdit] = useState(false);
   const [currentId, setCurrentId] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   // Fetch data from the API
   useEffect(() => {
@@ -31,12 +34,22 @@ const Edge = () => {
       setLoading(false);
     } catch (error) {
       console.error("Failed to fetch edge data:", error);
+      toast.error("Failed to fetch edge data!");
     }
   };
 
   // Handle input changes in the modal form
   const handleChange = (e) => {
     setModalData({ ...modalData, [e.target.name]: e.target.value });
+  };
+
+  // Handle image file change
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImagePreview(URL.createObjectURL(file));
+      setModalData({ ...modalData, image: file });
+    }
   };
 
   // Open modal for creating a new edge
@@ -48,6 +61,7 @@ const Edge = () => {
       buttonLink: "",
       image: "",
     });
+    setImagePreview(null);
     setIsEdit(false);
     setIsModalOpen(true);
   };
@@ -61,65 +75,129 @@ const Edge = () => {
       buttonLink: edge.buttonLink,
       image: edge.image,
     });
+    setImagePreview(edge.image);
     setIsEdit(true);
     setCurrentId(edge._id);
     setIsModalOpen(true);
   };
 
+  // Upload image to Cloudinary
+  const uploadImage = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "habson"); // Replace with your Cloudinary upload preset
+
+    try {
+      const response = await fetch(
+        "https://api.cloudinary.com/v1_1/dov6k7xdk/image/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image!");
+      return null;
+    }
+  };
+
   // Create new edge data
   const createEdge = async () => {
-    const newEdge = {
-      ...modalData,
-      description: modalData.description.split("\n"),
-    };
+    setUploading(true);
     try {
+      let imageUrl = modalData.image;
+
+      // Upload new image if a file is selected
+      if (typeof modalData.image === "object") {
+        imageUrl = await uploadImage(modalData.image);
+        if (!imageUrl) return;
+      }
+
+      const newEdge = {
+        ...modalData,
+        description: modalData.description.split("\n"),
+        image: imageUrl,
+      };
+
       const response = await fetch("/api/edge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newEdge),
       });
+
       if (response.ok) {
         fetchEdges(); // Refresh data after creation
         setIsModalOpen(false); // Close modal
+        toast.success("Edge created successfully!");
+      } else {
+        toast.error("Failed to create edge!");
       }
     } catch (error) {
       console.error("Failed to create edge data:", error);
+      toast.error("Failed to create edge!");
+    } finally {
+      setUploading(false);
     }
   };
 
   // Update edge data by ID
   const updateEdge = async () => {
-    const updatedData = {
-      ...modalData,
-      description: modalData.description.split("\n"),
-    };
+    setUploading(true);
     try {
+      let imageUrl = modalData.image;
+
+      // Upload new image if a file is selected
+      if (typeof modalData.image === "object") {
+        imageUrl = await uploadImage(modalData.image);
+        if (!imageUrl) return;
+      }
+
+      const updatedData = {
+        ...modalData,
+        description: modalData.description.split("\n"),
+        image: imageUrl,
+      };
+
       const response = await fetch(`/api/edge/${currentId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedData),
       });
+
       if (response.ok) {
         fetchEdges(); // Refresh data after update
         setIsModalOpen(false); // Close modal
+        toast.success("Edge updated successfully!");
+      } else {
+        toast.error("Failed to update edge!");
       }
     } catch (error) {
       console.error("Failed to update edge data:", error);
+      toast.error("Failed to update edge!");
+    } finally {
+      setUploading(false);
     }
   };
 
+  // Delete edge data by ID
   const deleteEdge = async (id) => {
     try {
       const response = await fetch(`/api/edge?id=${id}`, {
         method: "DELETE",
       });
+
       if (response.ok) {
         fetchEdges(); // Refresh data after deletion
+        toast.success("Edge deleted successfully!");
       } else {
-        console.error("Failed to delete edge data:", response.statusText);
+        toast.error("Failed to delete edge!");
       }
     } catch (error) {
       console.error("Error deleting edge data:", error);
+      toast.error("Failed to delete edge!");
     }
   };
 
@@ -241,14 +319,20 @@ const Edge = () => {
               placeholder="Button Link"
               className="w-full mb-3 p-2 border rounded"
             />
-            <label className="block mb-2 font-semibold">Image URL</label>
+            <label className="block mb-2 font-semibold">Image</label>
             <input
-              name="image"
-              value={modalData.image}
-              onChange={handleChange}
-              placeholder="Image URL"
-              className="w-full mb-4 p-2 border rounded"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="w-full mb-3 p-2 border rounded"
             />
+            {imagePreview && (
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="mb-4 rounded-lg w-full max-w-xs"
+              />
+            )}
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -259,8 +343,15 @@ const Edge = () => {
               <button
                 onClick={isEdit ? updateEdge : createEdge}
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                disabled={uploading}
               >
-                {isEdit ? "Update" : "Add"}
+                {uploading
+                  ? isEdit
+                    ? "Updating..."
+                    : "Creating..."
+                  : isEdit
+                  ? "Update"
+                  : "Add"}
               </button>
             </div>
           </div>
