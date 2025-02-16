@@ -204,18 +204,18 @@ const EditModal = ({ data, isOpen, onClose, onSave }) => {
             {formData.brand?.map((brand, index) => (
               <div
                 key={brand._id || index}
-                className="relative"
+                className="relative border border-gray-200 rounded-lg overflow-hidden"
               >
                 <Image
                   src={brand.logo || "/placeholder.svg"}
                   alt={`Brand logo ${index + 1}`}
                   width={100}
                   height={100}
-                  className="w-full h-auto object-contain"
+                  className="object-contain"
                 />
                 <button
                   type="button"
-                  className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-full"
+                  className="absolute top-0 right-0 p-1 bg-gray-300 hover:bg-red-500  text-white rounded-full"
                   onClick={() => handleRemoveBrand(index)}
                   aria-label="Remove Logo"
                 >
@@ -239,7 +239,7 @@ const EditModal = ({ data, isOpen, onClose, onSave }) => {
             <img
               src={newLogoPreview || "/placeholder.svg"}
               alt="New logo preview"
-              className="mt-4 rounded-lg w-full max-w-xs"
+              className="mt-4 w-full max-w-[50px]"
             />
           )}
         </div>
