@@ -26,10 +26,11 @@ const Sidebar = () => {
       icon: <MdDashboard />,
     },
     {
-      title: "Homes",
+      title: "Home",
       icon: <MdHome />,
       subItems: [
-        { title: "Homes", path: "/dashboard/home" },
+        { title: "Home", path: "/dashboard/home" },
+        { title: "Slideshow", path: "/dashboard/slideshow" },
         { title: "Mouse Movement", path: "/dashboard/mouse-movement" },
       ],
     },
