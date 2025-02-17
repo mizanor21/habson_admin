@@ -85,24 +85,11 @@ const Intro = ({ data, id }) => {
         { headers }
       );
 
+      alert("Video updated successfully!");
       // Show success notification
-      toast.success("Video updated successfully!");
+    //   toast.success("Video updated successfully!");
     } catch (error) {
-      console.error(
-        "Error updating data:",
-        error.response?.data || error.message
-      );
-
-      // Show error notification
-      toast.error("Failed to update video.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+      alert("Error updating video");
     } finally {
       setIsUploading(false); // Re-enable the Save button
     }

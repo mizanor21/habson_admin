@@ -86,25 +86,12 @@ const HeroSection = ({ data, id }) => {
         payload,
         { headers }
       );
+      alert("Hero Section data updated successfully!");
 
       // Show success notification
-      toast.success("Hero Section data updated successfully!");
+      // toast.success("Hero Section data updated successfully!");
     } catch (error) {
-      console.error(
-        "Error updating data:",
-        error.response?.data || error.message
-      );
-
-      // Show error notification
-      toast.error("Failed to update Hero Section data.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+      alert("Failed to update Hero Section data");
     }
   };
 
