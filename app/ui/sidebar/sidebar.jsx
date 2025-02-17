@@ -14,6 +14,9 @@ import {
   MdWorkspaces,
 } from "react-icons/md"; // Import icons
 import { PiImagesSquareDuotone } from "react-icons/pi";
+import { SiSololearn } from "react-icons/si";
+import { BsInfoCircleFill } from "react-icons/bs";
+import { GrResources } from "react-icons/gr";
 import logo from "@/public/assets/logo/logo.png";
 
 const Sidebar = () => {
@@ -41,6 +44,7 @@ const Sidebar = () => {
     },
     {
       title: "Solutions",
+      icon: <SiSololearn />,
       subItems: [
         { title: "Brand Solutions", path: "/dashboard/brand-solutions" },
         { title: "Media Solutions", path: "/dashboard/media-solutions" },
@@ -49,6 +53,7 @@ const Sidebar = () => {
     },
     {
       title: "About",
+      icon: <BsInfoCircleFill />,
       subItems: [
         { title: "Who We Are", path: "/dashboard/who-we-are" },
         // { title: "How We Work", path: "/dashboard/how-we-works" },
@@ -60,6 +65,7 @@ const Sidebar = () => {
     },
     {
       title: "Resources",
+      icon: <GrResources />,
       subItems: [
         { title: "Blogs", path: "/dashboard/blogs" },
         { title: "The Edge", path: "/dashboard/the-edge" },
@@ -91,9 +97,11 @@ const Sidebar = () => {
   ];
 
   const [collapsedSections, setCollapsedSections] = useState({
+    Home: true,
     Solutions: true,
     About: true,
     Resources: true,
+    Jobs: true,
     Settings: true,
   });
 
@@ -117,7 +125,7 @@ const Sidebar = () => {
         } ${isSubItem ? "ml-8 pl-4 border-l-2 border-gray-700" : ""}`}
       >
         {!isSubItem && item.icon && (
-          <span className="text-xl">{item.icon}</span>
+          <span className="text-xl saturate-0">{item.icon}</span>
         )}
         <span
           className={`text-sm ${
