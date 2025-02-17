@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { CiEdit } from "react-icons/ci";
 import { RiDeleteBin5Fill } from "react-icons/ri";
@@ -208,10 +209,12 @@ const Edge = () => {
             key={edge._id}
             className={`relative group`}
           >
-              <img
+              <Image
+              width={700}
+              height={400}
                 src={edge.image}
                 alt="Edge Image"
-                className="rounded-lg shadow-md "
+                className="rounded-lg shadow-md object-cover max-h-72"
               />
 
                 <div className="absolute top-3 right-3 gap-4 hidden group-hover:flex">
@@ -230,9 +233,10 @@ const Edge = () => {
                   </button>
                 </div>
 
-                <h1 className="absolute bottom-3 left-3  text-3xl font-bold text-[#125b5c]">
-                  {edge.title}
-                </h1>
+                <h1 className="absolute bottom-3 left-3 text-3xl font-bold text-[#0166B3] 
+               bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg">
+  {edge.title}
+</h1>
 
           </div>
         ))}
