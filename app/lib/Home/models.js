@@ -10,7 +10,6 @@ const homepageSchema = new mongoose.Schema({
   },
   videoSection: {
     videoURL: { type: String },
-    isActive: { type: Boolean, default: true },
   },
   elevateSection: {
     title: { type: String, required: true },

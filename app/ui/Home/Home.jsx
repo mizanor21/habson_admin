@@ -8,6 +8,7 @@ import DefinesSection from "./Defines";
 import HeroSection from "./HeroSection";
 import JourneySection from "./Journey";
 import ElevateSection from "./ElevateSction";
+import Intro from "./Intro";
 
 const Home = () => {
   const [homes, setHomes] = useState([]);
@@ -49,6 +50,7 @@ const Home = () => {
       ) : (
         <>
           <HeroSection data={heroSection} id="672acdb3167e8afc7894cdd9" />
+          <Intro data={videoSection} id="672acdb3167e8afc7894cdd9" />
           <DefinesSection
             data={defineUsSection}
             id="672acdb3167e8afc7894cdd9"
