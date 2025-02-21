@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { AiFillEdit } from "react-icons/ai";
 import { RiDeleteBin6Fill } from "react-icons/ri";
+import Swal from "sweetalert2";
 
 const MouseMovementCRUD = () => {
   const [mouseMovementData, setMouseMovementData] = useState([]);
@@ -29,15 +30,30 @@ const MouseMovementCRUD = () => {
   };
 
   const handleDeleteItem = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this item?")) return;
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This action cannot be undone!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       const res = await fetch(`/api/mouse-movement?id=${id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete item");
+
       setMouseMovementData(mouseMovementData.filter((item) => item._id !== id));
+
+      Swal.fire("Deleted!", "The item has been removed.", "success");
     } catch (error) {
       console.error(error);
+      Swal.fire("Error!", "Failed to delete the item.", "error");
     }
   };
 
@@ -52,11 +68,22 @@ const MouseMovementCRUD = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
+
       if (!res.ok) throw new Error("Failed to save item");
+
       fetchMouseMovementData();
       setIsModalOpen(false);
+
+      Swal.fire({
+        title: "Success!",
+        text: currentItem ? "Item updated successfully." : "Item added successfully.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
     } catch (error) {
       console.error(error);
+      Swal.fire("Error!", "Failed to save the item.", "error");
     }
   };
 
@@ -75,7 +102,7 @@ const MouseMovementCRUD = () => {
         {mouseMovementData.map((item) => (
           <div
             key={item._id}
-            className="border p-5 text-center rounded-lg shadow-md group hover:scale-105 transition"
+            className="border p-5 text-center rounded-lg shadow-md group hover:scale-105 transition text-white"
             style={{ backgroundColor: item.color }}
           >
             <p className="text-xl font-semibold">{item.title}</p>
