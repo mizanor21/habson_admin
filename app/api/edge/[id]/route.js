@@ -38,12 +38,12 @@ export async function PATCH(req, { params }) {
 export async function GET(req, { params }) {
   const { id } = params;
   await connectToDB();
-  const team = await Teams.findOne({ _id: id });
-  if (!team) {
+  const data = await Edge.findOne({ _id: id });
+  if (!data) {
     return NextResponse.json(
-      { message: "team data not found" },
+      { message: "data not found" },
       { status: 404 }
     );
   }
-  return NextResponse.json(team, { status: 200 });
+  return NextResponse.json(data, { status: 200 });
 }

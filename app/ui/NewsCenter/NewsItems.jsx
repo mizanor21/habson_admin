@@ -2,6 +2,8 @@
 import Image from "next/image";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 const SkeletonLoader = () => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 gap-y-8 md:gap-y-20">
@@ -18,6 +20,7 @@ const SkeletonLoader = () => (
 const NewsItems = ({ data, setData }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const {
     register,
@@ -33,6 +36,7 @@ const NewsItems = ({ data, setData }) => {
 
   const handleEditClick = (item) => {
     setSelectedItem(item);
+    setValue("category", item.category);
     setValue("title", item.title);
     setValue("img", item.img);
     setValue("description", item.description || "");
@@ -40,10 +44,8 @@ const NewsItems = ({ data, setData }) => {
   };
 
   const handleAdd = () => {
-    // setSelectedItem(item);
-    // setValue("title", item?.title);
-    // setValue("img", item.img);
-    // setValue("description", item.description || "");
+    setSelectedItem(null);
+    reset();
     setIsModalOpen(true);
   };
 
@@ -53,47 +55,80 @@ const NewsItems = ({ data, setData }) => {
     reset();
   };
 
-  const onSubmit = async (formData) => {
-    if (!selectedItem) return;
+  const handleImageUpload = async (file) => {
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "habson"); // Replace with your Cloudinary upload preset
 
     try {
-      // Send PATCH request using Axios
-      const { data: updatedItem } = await axios.patch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/news-center/${selectedItem._id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+      const response = await axios.post(
+        "https://api.cloudinary.com/v1_1/dov6k7xdk/image/upload", // Replace with your Cloudinary cloud name
+        formData
       );
+      setIsUploading(false);
+      return response.data.secure_url; // Return the uploaded image URL
+    } catch (error) {
+      setIsUploading(false);
+      toast.error("Image upload failed. Please try again.");
+      return null;
+    }
+  };
+
+  const onSubmit = async (formData) => {
+    try {
+      let updatedItem;
+      if (selectedItem) {
+        // PATCH request for updating an existing item
+        const { data: response } = await axios.patch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/news-center/${selectedItem._id}`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        updatedItem = response;
+      } else {
+        // POST request for adding a new item
+        const { data: response } = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/news-center`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        updatedItem = response;
+      }
 
       // Notify the user of success
-      alert("News item updated successfully!");
+      toast.success(`News item ${selectedItem ? "updated" : "added"} successfully!`);
 
       // Update local data
-      const updatedData = data.map((item) =>
-        item._id === updatedItem._id ? updatedItem : item
-      );
-      setData(updatedData); // Ensure setData updates the parent state
+      if (selectedItem) {
+        const updatedData = data.map((item) =>
+          item._id === updatedItem._id ? updatedItem : item
+        );
+        setData(updatedData);
+      } else {
+        setData([...data, updatedItem]);
+      }
       handleCloseModal();
     } catch (error) {
-      // Enhanced error handling
-      if (error.response) {
-        // Server responded with a status other than 2xx
-        console.error("Error response:", error.response.data);
-        alert(
-          `Failed to update: ${error.response.data.message || "Unknown error"}`
-        );
-      } else if (error.request) {
-        // Request was made but no response received
-        console.error("No response received:", error.request);
-        alert("No response from the server. Please try again later.");
-      } else {
-        // Other errors
-        console.error("Error:", error.message);
-        alert("An error occurred while updating the news item.");
-      }
+      toast.error("An error occurred. Please try again.");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/news-center?id=${id}`);
+      setData(data.filter((item) => item._id !== id)); // Remove the deleted item from the local state
+      toast.success("News item deleted successfully!");
+    } catch (error) {
+      toast.error("Failed to delete news item. Please try again.");
     }
   };
 
@@ -126,6 +161,12 @@ const NewsItems = ({ data, setData }) => {
             >
               Edit
             </button>
+            <button
+              className="absolute top-2 right-20 bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-600 transition-all"
+              onClick={() => handleDelete(item._id)}
+            >
+              Delete
+            </button>
           </div>
         ))}
       </div>
@@ -140,8 +181,28 @@ const NewsItems = ({ data, setData }) => {
             >
               ✕
             </button>
-            <h2 className="text-2xl font-bold mb-6">Edit News Item</h2>
+            <h2 className="text-2xl font-bold mb-6">{selectedItem ? "Edit" : "Add"} News Item</h2>
             <form onSubmit={handleSubmit(onSubmit)}>
+              <div className="mb-4">
+                <label htmlFor="category" className="block text-sm font-medium">
+                  Category
+                </label>
+                <input
+                  type="text"
+                  id="category"
+                  {...register("category", { required: "Category is required" })}
+                  className={`mt-1 w-full px-4 py-2 bg-gray-50 border ${
+                    errors.category ? "border-red-500" : "border-gray-300"
+                  } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
+                    errors.category ? "focus:ring-red-500" : "focus:ring-blue-500"
+                  }`}
+                />
+                {errors.category && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.category.message}
+                  </p>
+                )}
+              </div>
               <div className="mb-4">
                 <label htmlFor="title" className="block text-sm font-medium">
                   Title
@@ -164,23 +225,22 @@ const NewsItems = ({ data, setData }) => {
               </div>
               <div className="mb-4">
                 <label htmlFor="img" className="block text-sm font-medium">
-                  Image URL
+                  Image
                 </label>
                 <input
-                  type="text"
+                  type="file"
                   id="img"
-                  {...register("img", { required: "Image URL is required" })}
-                  className={`mt-1 w-full px-4 py-2 bg-gray-50 border ${
-                    errors.img ? "border-red-500" : "border-gray-300"
-                  } rounded-lg shadow-sm focus:outline-none focus:ring-2 ${
-                    errors.img ? "focus:ring-red-500" : "focus:ring-blue-500"
-                  }`}
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const imageUrl = await handleImageUpload(file);
+                      if (imageUrl) {
+                        setValue("img", imageUrl);
+                      }
+                    }
+                  }}
                 />
-                {errors.img && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.img.message}
-                  </p>
-                )}
+                {isUploading && <p>Uploading image...</p>}
               </div>
               <div className="mb-6">
                 <label
@@ -221,7 +281,7 @@ const NewsItems = ({ data, setData }) => {
                   type="submit"
                   className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 text-white px-4 py-2 rounded-md hover:shadow-lg transition-all"
                 >
-                  Save Changes
+                  {selectedItem ? "Save Changes" : "Add News"}
                 </button>
               </div>
             </form>

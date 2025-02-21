@@ -12,23 +12,16 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
-    const { img, title, category, details, isTrending } = await req.json();
+    const data = await req.json();
 
+    // Connect to the database
     await connectToDB();
-
-    await News.create({
-      img,
-      title,
-      category,
-      details,
-      isTrending,
-    });
-
-    return NextResponse.json({ message: "News created" }, { status: 201 });
+    await News.create(data);
+    return NextResponse.json({ message: "data created" }, { status: 201 });
   } catch (error) {
-    console.error("Error creating News:", error);
+    console.error("Error creating data:", error);
     return NextResponse.json(
-      { message: "Failed to create news" },
+      { message: "Failed to create data" },
       { status: 500 }
     );
   }
