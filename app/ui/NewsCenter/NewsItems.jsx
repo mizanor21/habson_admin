@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import toast from "react-hot-toast";
+import Swal from "sweetalert2";
 
 const SkeletonLoader = () => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 gap-y-8 md:gap-y-20">
@@ -105,7 +106,7 @@ const NewsItems = ({ data, setData }) => {
       }
 
       // Notify the user of success
-      toast.success(`News item ${selectedItem ? "updated" : "added"} successfully!`);
+      alert(`News item ${selectedItem ? "updated" : "added"} successfully!`);
 
       // Update local data
       if (selectedItem) {
@@ -123,12 +124,23 @@ const NewsItems = ({ data, setData }) => {
   };
 
   const handleDelete = async (id) => {
-    try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/news-center?id=${id}`);
-      setData(data.filter((item) => item._id !== id)); // Remove the deleted item from the local state
-      toast.success("News item deleted successfully!");
-    } catch (error) {
-      toast.error("Failed to delete news item. Please try again.");
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/news-center?id=${id}`);
+        setData(data.filter((item) => item._id !== id)); // Remove the deleted item from the local state
+      } catch (error) {
+        Swal.fire("Deleted!", "Your news item has been deleted.", "success");
+      }
     }
   };
 
