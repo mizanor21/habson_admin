@@ -124,22 +124,15 @@ const NewsItems = ({ data, setData }) => {
   };
 
   const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    });
+    const isConfirmed = window.confirm("Are you sure you want to delete this item? This action cannot be undone.");
 
-    if (result.isConfirmed) {
+    if (isConfirmed) {
       try {
         await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/news-center?id=${id}`);
         setData(data.filter((item) => item._id !== id)); // Remove the deleted item from the local state
+        toast.success("News item deleted successfully.");
       } catch (error) {
-        Swal.fire("Deleted!", "Your news item has been deleted.", "success");
+        toast.error("An error occurred. Please try again.");
       }
     }
   };
