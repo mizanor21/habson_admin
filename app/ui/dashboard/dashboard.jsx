@@ -18,13 +18,13 @@ const DashboardUI = () => {
     const fetchData = async () => {
       try {
         const usersRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/users`
+          `/api/users`
         );
         const usersData = await usersRes.json();
         setUsers(usersData);
 
         const messagesRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/contact`
+          `/api/contact`
         );
         const messagesData = await messagesRes.json();
         setMessageList(messagesData.reverse());
@@ -57,7 +57,7 @@ const DashboardUI = () => {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/contact/?id=${id}`,
+        `/api/contact/?id=${id}`,
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },

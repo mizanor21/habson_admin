@@ -82,7 +82,7 @@ const NewsItems = ({ data, setData }) => {
       if (selectedItem) {
         // PATCH request for updating an existing item
         const { data: response } = await axios.patch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/news-center/${selectedItem._id}`,
+          `/api/news-center/${selectedItem._id}`,
           formData,
           {
             headers: {
@@ -94,7 +94,7 @@ const NewsItems = ({ data, setData }) => {
       } else {
         // POST request for adding a new item
         const { data: response } = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/news-center`,
+          `/api/news-center`,
           formData,
           {
             headers: {
@@ -128,7 +128,7 @@ const NewsItems = ({ data, setData }) => {
 
     if (isConfirmed) {
       try {
-        await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/news-center?id=${id}`);
+        await axios.delete(`/api/news-center?id=${id}`);
         setData(data.filter((item) => item._id !== id)); // Remove the deleted item from the local state
         toast.success("News item deleted successfully.");
       } catch (error) {

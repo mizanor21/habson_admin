@@ -205,39 +205,36 @@ const Edge = () => {
 
       <div className="grid grid-cols-3 gap-5">
         {edges.map((edge, index) => (
-          <div
-            key={edge._id}
-            className={`relative group`}
-          >
-              <Image
+          <div key={edge._id} className={`relative group`}>
+            <Image
               width={700}
               height={400}
-                src={edge.image}
-                alt="Edge Image"
-                className="rounded-lg shadow-md object-cover max-h-72"
-              />
+              src={edge.image}
+              alt="Edge Image"
+              className="rounded-lg shadow-md object-cover max-h-72"
+            />
 
-                <div className="absolute top-3 right-3 gap-4 hidden group-hover:flex">
-                  <button
-                    onClick={() => openEditModal(edge)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-                  >
-                    <CiEdit />
+            <div className="absolute top-3 right-3 gap-4 hidden group-hover:flex">
+              <button
+                onClick={() => openEditModal(edge)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+              >
+                <CiEdit />
+              </button>
+              <button
+                onClick={() => deleteEdge(edge._id)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+              >
+                <RiDeleteBin5Fill />
+              </button>
+            </div>
 
-                  </button>
-                  <button
-                    onClick={() => deleteEdge(edge._id)}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                  >
-                    <RiDeleteBin5Fill />
-                  </button>
-                </div>
-
-                <h1 className="absolute bottom-3 left-3 text-3xl font-bold text-[#0166B3] 
-               bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg">
-  {edge.title}
-</h1>
-
+            <h1
+              className="absolute bottom-3 left-3 text-3xl font-bold text-[#0166B3] 
+               bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg"
+            >
+              {edge.title}
+            </h1>
           </div>
         ))}
       </div>
@@ -257,7 +254,7 @@ const Edge = () => {
               placeholder="Title"
               className="w-full mb-3 p-2 border rounded"
             />
-            
+
             <label className="block mb-2 font-semibold">Image</label>
             <input
               type="file"

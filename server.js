@@ -7,7 +7,7 @@ import next from "next";
 
 const dev = false;
 const hostname = "localhost";
-const port = process.env.port || 3100;
+const port = process.env.port || 3300;
 // when using middleware hostname and port must be provided below
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();

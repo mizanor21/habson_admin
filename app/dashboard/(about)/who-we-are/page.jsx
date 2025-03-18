@@ -29,7 +29,7 @@ const WhoWeAre = () => {
       setLoading(true);
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/who-we-are`
+          `/api/who-we-are`
         );
         const rawData = response.data[0]; // Assuming response is an array with one object
 
@@ -104,7 +104,7 @@ const WhoWeAre = () => {
 
       // PATCH request with document ID in the URL
       await axios.patch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/who-we-are/${documentId}`,
+        `$/api/who-we-are/${documentId}`,
         transformedData
       );
       setData(updatedData); // Update displayed data with modified data
@@ -121,9 +121,7 @@ const WhoWeAre = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen p-10 font-sora">
-      <h1 className="text-4xl font-extrabold text-[#125B5C] text-center mb-10">
-        {data.title}
-      </h1>
+      
 
       <div className="grid gap-8 md:grid-cols-2">
         {/* Main "Who We Are" Section */}
@@ -150,7 +148,7 @@ const WhoWeAre = () => {
         </div>
 
         {/* Video Section */}
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+        {/* <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           <video
             className="w-full h-full rounded-t-lg"
             autoPlay
@@ -166,11 +164,11 @@ const WhoWeAre = () => {
               {data.shortVideoAlt}
             </h3>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Long Video Section */}
-      <div className="mt-10 bg-white shadow-lg rounded-lg overflow-hidden">
+      {/* <div className="mt-10 bg-white shadow-lg rounded-lg overflow-hidden">
         <video
           className="w-full h-full"
           autoPlay
@@ -186,7 +184,7 @@ const WhoWeAre = () => {
             {data.longVideoAlt}
           </h3>
         </div>
-      </div>
+      </div> */}
 
       {/* Modal for Updating Data */}
       {isModalOpen && (
