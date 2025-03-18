@@ -160,33 +160,6 @@ const DashboardUI = () => {
     <div className="min-h-screen bg-gray-50">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       
-      {/* Header Section */}
-      <div className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <h1 className="text-3xl font-bold text-gray-900">
-                Admin Dashboard
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Welcome back, Administrator
-              </p>
-            </div>
-            <div className="bg-gradient-to-r from-teal-500 to-teal-700 py-2 px-4 rounded-lg shadow-md">
-              <div className="flex items-center text-white">
-                <FaCalendarAlt className="mr-2" />
-                <p className="text-lg font-medium">
-                  {format(currentTime, "h:mm:ss a")}
-                </p>
-              </div>
-              <p className="text-sm text-teal-100">
-                {format(currentTime, "EEEE, MMMM d, yyyy")}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-      
       {/* Dashboard Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
